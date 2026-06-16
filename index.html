@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Axentro - نظام إدارة الفواتير</title>
+    <title>Axentro - نظام إدارة الفواتير مع OCR</title>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,6 +12,9 @@
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tesseract.js for OCR -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
     <style>
         * {
@@ -343,9 +346,9 @@
 
         /* ===== PROGRESS BAR ===== */
         .progress-bar {
-            height: 24px;
+            height: 28px;
             background: var(--bg-input);
-            border-radius: 12px;
+            border-radius: 14px;
             overflow: hidden;
             position: relative;
         }
@@ -353,14 +356,14 @@
         .progress-fill {
             height: 100%;
             background: linear-gradient(90deg, var(--primary), var(--success));
-            border-radius: 12px;
+            border-radius: 14px;
             transition: width 0.5s ease;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
             font-weight: 700;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
         }
 
         /* ===== UPLOAD AREA ===== */
@@ -372,18 +375,84 @@
             cursor: pointer;
             transition: all 0.3s;
             background: var(--bg-input);
+            position: relative;
+            overflow: hidden;
         }
 
         .upload-area:hover,
         .upload-area.dragover {
             border-color: var(--primary);
             background: rgba(37,99,235,0.1);
+            transform: scale(1.02);
+        }
+
+        .upload-area.processing {
+            border-color: var(--warning);
+            background: rgba(245,158,11,0.1);
+        }
+
+        .upload-area.success {
+            border-color: var(--success);
+            background: rgba(16,185,129,0.1);
         }
 
         .upload-area i {
-            font-size: 3rem;
+            font-size: 3.5rem;
             color: var(--primary);
             margin-bottom: 1rem;
+            transition: transform 0.3s;
+        }
+
+        .upload-area:hover i {
+            transform: scale(1.1);
+        }
+
+        /* ===== OCR PROCESSING INDICATOR ===== */
+        .ocr-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15,23,42,0.95);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 13px;
+            z-index: 10;
+        }
+
+        .ocr-overlay.show {
+            display: flex;
+        }
+
+        .ocr-spinner {
+            width: 70px;
+            height: 70px;
+            border: 5px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .ocr-text {
+            color: var(--primary);
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .ocr-progress-container {
+            width: 80%;
+            max-width: 350px;
+            margin: 0 auto;
         }
 
         /* ===== MODAL ===== */
@@ -497,7 +566,7 @@
             display: flex;
             align-items: center;
             gap: 1rem;
-            min-width: 300px;
+            min-width: 320px;
             animation: toastIn 0.4s ease;
         }
 
@@ -631,7 +700,7 @@
         /* Invoice Items Table */
         .items-table input {
             width: 100%;
-            padding: 0.6rem;
+            padding: 0.65rem;
             background: var(--bg-input);
             border: 1px solid var(--border);
             border-radius: 6px;
@@ -672,19 +741,54 @@
             margin-bottom: 0.75rem;
         }
 
-        /* Loading Spinner */
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid var(--border);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 2rem auto;
+        /* OCR Result Preview */
+        .ocr-result-preview {
+            background: rgba(37,99,235,0.1);
+            border: 2px dashed var(--primary);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-top: 1rem;
+            display: none;
         }
 
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .ocr-result-preview.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .ocr-result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.95rem;
+        }
+
+        .ocr-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .ocr-result-label {
+            color: var(--text-gray);
+            font-weight: 600;
+        }
+
+        .ocr-result-value {
+            color: var(--success);
+            font-weight: 700;
+        }
+
+        /* Image preview after upload */
+        .image-preview {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .image-preview.show {
+            display: block;
         }
     </style>
 </head>
@@ -847,14 +951,14 @@
         </div>
     </section>
 
-    <!-- ==================== CREATE INVOICE ==================== -->
+    <!-- ==================== CREATE INVOICE WITH OCR ==================== -->
     <section id="invoice" class="section">
-        <h1 class="page-title"><i class="fas fa-file-invoice-dollar"></i> إنشاء فاتورة جديدة</h1>
+        <h1 class="page-title"><i class="fas fa-file-invoice-dollar"></i> إنشاء فاتورة جديدة (مع قراءة تلقائية)</h1>
 
         <div class="card">
-            <h2 class="card-title"><i class="fas fa-info-circle"></i> البيانات الأساسية</h2>
+            <h2 class="card-title"><i class="fas fa-camera"></i> رفع صورة الفاتورة - سيتم قراءتها تلقائياً via OCR 🤖</h2>
             
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;margin-bottom:1.5rem;">
                 <div class="form-group">
                     <label class="form-label">رقم الفاتورة الداخلي</label>
                     <input type="text" class="form-control" id="invId" readonly style="background:#0f172a;font-weight:bold;color:#60a5fa;">
@@ -863,29 +967,74 @@
                     <label class="form-label">تاريخ الفاتورة *</label>
                     <input type="date" class="form-control" id="invDate">
                 </div>
-                <div class="form-group">
-                    <label class="form-label">اختيار العميل *</label>
-                    <select class="form-control" id="invClient">
-                        <option value="">-- اختر العميل --</option>
-                    </select>
-                </div>
             </div>
 
-            <div class="form-group" style="margin-top:1.5rem;">
-                <label class="form-label"><i class="fas fa-camera"></i> رفع صورة الفاتورة (اختياري)</label>
-                <div class="upload-area" onclick="document.getElementById('invImage').click()">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <p>اضغط هنا لرفع صورة الفاتورة</p>
-                    <p style="font-size:0.85rem;color:var(--text-gray);">PNG, JPG (حد أقصى 5MB)</p>
+            <!-- Upload Area with OCR -->
+            <div class="form-group">
+                <label class="form-label" style="font-size:1.1rem;color:#60a5fa;">
+                    <i class="fas fa-magic"></i> ارفع صورة الفاتورة هنا (سيتم استخراج جميع البيانات تلقائياً)
+                </label>
+                
+                <div class="upload-area" id="uploadArea" onclick="document.getElementById('invImage').click()">
+                    <!-- OCR Processing Overlay -->
+                    <div class="ocr-overlay" id="ocrOverlay">
+                        <div class="ocr-spinner"></div>
+                        <div class="ocr-text">
+                            <i class="fas fa-brain"></i><br>
+                            جاري قراءة الفاتورة بالذكاء الاصطناعي...
+                        </div>
+                        <div class="ocr-progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="ocrProgress" style="width:0%;">0%</div>
+                            </div>
+                        </div>
+                        <p style="color:var(--text-gray);margin-top:1rem;font-size:0.9rem;">يرجى الانتظار...</p>
+                    </div>
+
+                    <i class="fas fa-cloud-upload-alt" id="uploadIcon"></i>
+                    <p style="font-size:1.1rem;font-weight:600;" id="uploadText">اضغط هنا أو اسحب صورة الفاتورة</p>
+                    <p style="font-size:0.9rem;color:var(--text-gray);" id="uploadSubtext">PNG, JPG (حد أقصى 10MB) - يدعم الفواتير الضريبية المصرية</p>
+                    
+                    <!-- Image Preview -->
+                    <img id="imagePreview" class="image-preview" alt="Preview">
                 </div>
-                <input type="file" id="invImage" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
+                <input type="file" id="invImage" accept="image/*" style="display:none;" onchange="handleInvoiceUpload(event)">
+            </div>
+
+            <!-- OCR Results Preview -->
+            <div class="ocr-result-preview" id="ocrResults">
+                <h3 style="color:var(--success);margin-bottom:1rem;"><i class="fas fa-check-circle"></i> تم استخراج البيانات التالية:</h3>
+                <div id="ocrResultsContent"></div>
             </div>
         </div>
 
-        <!-- Items -->
+        <!-- Client Selection (Auto-filled from OCR or Manual) -->
+        <div class="card">
+            <h2 class="card-title"><i class="fas fa-user-tie"></i> بيانات العميل</h2>
+            
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;">
+                <div class="form-group">
+                    <label class="form-label">اختيار العميل * <span style="color:var(--text-gray);font-size:0.85rem;">(اختر من القائمة أو أدخل جديد)</span></label>
+                    <select class="form-control" id="invClient" onchange="onClientSelect()">
+                        <option value="">-- اختر العميل --</option>
+                        <option value="__new__">+ إضافة عميل جديد</option>
+                    </select>
+                </div>
+                <div class="form-group" id="newClientNameGroup" style="display:none;">
+                    <label class="form-label">اسم العميل (من OCR)</label>
+                    <input type="text" class="form-control" id="newClientName" placeholder="سيتم ملؤه تلقائياً...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">الرقم الضريبي (من OCR)</label>
+                    <input type="text" class="form-control" id="invTaxId" placeholder="سيتم ملؤه تلقائياً...">
+                </div>
+            </div>
+        </div>
+
+        <!-- Items (Auto-filled from OCR) -->
         <div class="card">
             <h2 class="card-title">
-                <i class="fas fa-list-alt"></i> بنود الفاتورة
+                <i class="fas fa-list-alt"></i> بنود الفاتورة (من OCR)
                 <button class="btn btn-success btn-sm" style="margin-right:auto;" onclick="addItem()">
                     <i class="fas fa-plus"></i> إضافة بند
                 </button>
@@ -896,7 +1045,7 @@
                     <thead>
                         <tr>
                             <th style="width:40px;">#</th>
-                            <th>الوصف</th>
+                            <th>الوصف (Description)</th>
                             <th style="width:100px;">الكمية</th>
                             <th style="width:150px;">سعر الوحدة</th>
                             <th style="width:150px;">الإجمالي</th>
@@ -907,13 +1056,13 @@
                 </table>
             </div>
 
-            <!-- Summary -->
+            <!-- Summary with Auto-calculated VAT -->
             <div class="summary-box">
                 <h3 style="margin-bottom:1rem;color:#60a5fa;"><i class="fas fa-calculator"></i> حساب الضرائب والخصومات</h3>
                 
                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1rem;">
                     <div class="form-group" style="margin-bottom:0;">
-                        <label class="form-label">ضريبة القيمة المضافة (%)</label>
+                        <label class="form-label">ضريبة القيمة المضافة (%) <span style="color:var(--success);">(من OCR)</span></label>
                         <input type="number" class="form-control" id="vatRate" value="14" min="0" oninput="calcTotal()">
                     </div>
                     <div class="form-group" style="margin-bottom:0;">
@@ -927,11 +1076,11 @@
                 </div>
 
                 <div class="summary-row">
-                    <span>الإجمالي الفرعي:</span>
+                    <span>الإجمالي الفرعي (Subtotal):</span>
                     <span id="subtotal">0.00 ج.م</span>
                 </div>
                 <div class="summary-row">
-                    <span>ضريبة القيمة المضافة:</span>
+                    <span>ضريبة القيمة المضافة (VAT):</span>
                     <span id="vatAmount">0.00 ج.م</span>
                 </div>
                 <div class="summary-row">
@@ -947,7 +1096,7 @@
                     <span id="laborDedAmount" style="color:#ef4444;">-0.00 ج.م</span>
                 </div>
                 <div class="summary-row">
-                    <span>الإجمالي النهائي:</span>
+                    <span>الإجمالي النهائي (Final Total):</span>
                     <span id="finalTotal">0.00 ج.م</span>
                 </div>
             </div>
@@ -1180,8 +1329,8 @@
             </div>
             <div class="form-group">
                 <label class="form-label">رفع المستند *</label>
-                <div class="upload-area" onclick="document.getElementById('docFile').click()">
-                    <i class="fas fa-cloud-upload-alt"></i>
+                <div class="upload-area" onclick="document.getElementById('docFile').click()" style="padding:1.5rem;">
+                    <i class="fas fa-cloud-upload-alt" style="font-size:2rem;"></i>
                     <p>اضغط لرفع المستند</p>
                 </div>
                 <input type="file" id="docFile" accept="image/*,.pdf" style="display:none;" required>
@@ -1254,9 +1403,8 @@ function showSection(id) {
     document.getElementById(id).classList.add('active');
     
     document.querySelectorAll('.nav-menu a').forEach(a => a.classList.remove('active'));
-    event.target && event.target.classList.add('active');
+    if(event && event.target) event.target.classList.add('active');
 
-    // Refresh data
     if (id === 'dashboard') refreshDashboard();
     if (id === 'clients') renderClients();
     if (id === 'invoices') renderInvoices();
@@ -1283,7 +1431,6 @@ function closeModal(id) {
     document.body.style.overflow = '';
 }
 
-// Close on overlay click
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
     overlay.addEventListener('click', function(e) {
         if (e.target === this) {
@@ -1396,6 +1543,7 @@ function deleteClient(id) {
 
 function updateClientSelects() {
     const options = '<option value="">-- اختر العميل --</option>' + 
+        '<option value="__new__">+ إضافة عميل جديد</option>' +
         DB.clients.map(c => `<option value="${c.id}">${c.name} ${c.taxId ? '(' + c.taxId + ')' : ''}</option>`).join('');
     
     document.getElementById('invClient').innerHTML = options;
@@ -1405,8 +1553,20 @@ function updateClientSelects() {
     document.getElementById('filterClient').innerHTML = filterOptions;
 }
 
+function onClientSelect() {
+    const val = document.getElementById('invClient').value;
+    const newClientGroup = document.getElementById('newClientNameGroup');
+    
+    if (val === '__new__') {
+        newClientGroup.style.display = 'block';
+        document.getElementById('newClientName').focus();
+    } else {
+        newClientGroup.style.display = 'none';
+    }
+}
+
 // ==========================================
-// INVOICE
+// INVOICE - OCR SYSTEM
 // ==========================================
 let itemCount = 0;
 
@@ -1417,11 +1577,462 @@ function initInvoice() {
     document.getElementById('taxDeduction').value = 0;
     document.getElementById('laborDeduction').value = 0;
     
-    if (itemCount === 0) addItem();
+    // Reset upload area
+    document.getElementById('uploadArea').classList.remove('processing', 'success');
+    document.getElementById('ocrOverlay').classList.remove('show');
+    document.getElementById('ocrResults').classList.remove('show');
+    document.getElementById('imagePreview').classList.remove('show');
+    document.getElementById('uploadIcon').style.display = 'block';
+    document.getElementById('uploadText').textContent = 'اضغط هنا أو اسحب صورة الفاتورة';
+    document.getElementById('uploadSubtext').textContent = 'PNG, JPG (حد أقصى 10MB) - يدعم الفواتير الضريبية المصرية';
+    
+    // Clear fields
+    document.getElementById('invClient').value = '';
+    document.getElementById('newClientName').value = '';
+    document.getElementById('invTaxId').value = '';
+    document.getElementById('itemsBody').innerHTML = '';
+    itemCount = 0;
+    
+    addItem();
     updateClientSelects();
     calcTotal();
 }
 
+// Handle Invoice Image Upload with OCR
+async function handleInvoiceUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+        showToast('يرجى اختيار ملف صورة فقط', 'error');
+        return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+        showToast('حجم الملف كبير جداً (حد أقصى 10MB)', 'error');
+        return;
+    }
+
+    const uploadArea = document.getElementById('uploadArea');
+    const ocrOverlay = document.getElementById('ocrOverlay');
+    const imagePreview = document.getElementById('imagePreview');
+
+    // Show processing state
+    uploadArea.classList.add('processing');
+    ocrOverlay.classList.add('show');
+    document.getElementById('uploadIcon').style.display = 'none';
+    document.getElementById('uploadText').textContent = 'جاري معالجة الصورة...';
+    document.getElementById('uploadSubtext').textContent = '';
+
+    // Show image preview
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+        imagePreview.src = ev.target.result;
+        imagePreview.classList.add('show');
+    };
+    reader.readAsDataURL(file);
+
+    try {
+        console.log('🚀 Starting OCR processing...');
+        
+        // Use Tesseract.js for OCR
+        const result = await Tesseract.recognize(file, 'ara+eng', {
+            logger: m => {
+                if (m.status === 'recognizing text') {
+                    const progress = Math.round(m.progress * 100);
+                    document.getElementById('ocrProgress').style.width = progress + '%';
+                    document.getElementById('ocrProgress').textContent = progress + '%';
+                    console.log(`OCR Progress: ${progress}%`);
+                }
+            }
+        });
+
+        console.log('✅ OCR Completed!');
+        console.log('OCR Text:', result.data.text);
+
+        // Parse the OCR results for Egyptian Tax Invoice
+        const extractedData = parseEgyptianInvoice(result.data.text);
+
+        // Show success state
+        uploadArea.classList.remove('processing');
+        uploadArea.classList.add('success');
+        ocrOverlay.classList.remove('show');
+        document.getElementById('uploadText').textContent = '✓ تمت قراءة الفاتورة بنجاح!';
+        document.getElementById('uploadSubtext').textContent = 'تم استخراج البيانات تلقائياً';
+
+        // Fill form fields with extracted data
+        fillInvoiceForm(extractedData);
+
+        // Show OCR results summary
+        showOCRResults(extractedData);
+
+        showToast('✅ تم قراءة الفاتورة وتعبئة البيانات تلقائياً!', 'success');
+
+    } catch (error) {
+        console.error('❌ OCR Error:', error);
+        
+        uploadArea.classList.remove('processing');
+        ocrOverlay.classList.remove('show');
+        document.getElementById('uploadIcon').style.display = 'block';
+        document.getElementById('uploadText').textContent = 'حدث خطأ في القراءة';
+        document.getElementById('uploadSubtext').textContent = 'يرجى المحاولة مرة أخرى أو إدخال البيانات يدوياً';
+
+        showToast('حدث خطأ في قراءة الفاتورة، يرجى إدخال البيانات يدوياً', 'warning');
+    }
+}
+
+// Parse Egyptian Tax Invoice (ETA format)
+function parseEgyptianInvoice(text) {
+    const data = {
+        clientName: '',
+        clientTaxId: '',
+        items: [],
+        vatRate: 14,
+        subtotal: 0,
+        vatAmount: 0,
+        totalAmount: 0,
+        internalId: '',
+        date: ''
+    };
+
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+
+    console.log('📝 Parsing invoice lines:', lines);
+
+    // Extract Receiver (Client) Information
+    // Look for "Receiver (to)" section
+    let inReceiverSection = false;
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        
+        // Detect Receiver section
+        if (line.includes('Receiver') || line.includes('المستلم') || line.includes('to)')) {
+            inReceiverSection = true;
+            continue;
+        }
+
+        // Exit receiver section when we hit Order Details or Line Items
+        if (line.includes('Order Details') || line.includes('Line Items') || line.includes('البنود')) {
+            inReceiverSection = false;
+        }
+
+        // Extract client name and tax ID from receiver section
+        if (inReceiverSection) {
+            // Client Name (usually first non-empty line after "Name")
+            if (line.toLowerCase().includes('name') || line.includes('اسم')) {
+                // Next line should be the actual name
+                if (i + 1 < lines.length && !lines[i+1].toLowerCase().includes('registration') && !lines[i+1].toLowerCase().includes('type')) {
+                    data.clientName = lines[i+1].trim();
+                }
+            }
+            
+            // Registration Number (Tax ID)
+            if (line.toLowerCase().includes('registration number') || line.includes('رقم تسجيل')) {
+                const nextLine = lines[i + 1] || '';
+                // Extract numbers only
+                const match = nextLine.match(/\d+/);
+                if (match) {
+                    data.clientTaxId = match[0];
+                }
+            }
+        }
+
+        // Extract Internal ID
+        if (line.toLowerCase().includes('internal id') || line.includes('Internal ID')) {
+            const match = line.match(/(\d+)/);
+            if (match) {
+                data.internalId = match[1];
+            }
+        }
+
+        // Extract dates
+        if (line.toLowerCase().includes('issuance date') || line.toLowerCase().includes('issue date')) {
+            // Try to extract date in various formats
+            const dateMatch = line.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
+            if (dateMatch) {
+                const parts = dateMatch[1].split('/');
+                if (parts.length === 3) {
+                    data.date = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                }
+            }
+        }
+
+        // Extract Line Items
+        if (line.includes('Line Items') || line.includes('البنود')) {
+            // Start looking for items in next lines
+            for (let j = i + 1; j < lines.length; j++) {
+                const itemLine = lines[j];
+                
+                // Stop at totals section
+                if (itemLine.includes('Total Sales') || itemLine.includes('Total Amount') || itemLine.includes('الإجمالي')) {
+                    break;
+                }
+
+                // Skip header rows
+                if (itemLine.includes('Code') || itemLine.includes('Description') || itemLine.includes('Quantity') || 
+                    itemLine.includes('Unit Price') || itemLine.includes('All Currency') || itemLine.includes('---')) {
+                    continue;
+                }
+
+                // Try to extract item data
+                // Look for patterns like: Description ... Quantity Price Total
+                const itemMatch = itemLine.match(/(.+?)\s+(\d[\d,]*\.?\d*)\s+(\d[\d,]*\.?\d*)\s+(\d[\d,]*\.?\d*)/);
+                
+                if (itemMatch) {
+                    const desc = itemMatch[1].replace(/[^\w\s\u0600-\u06FF]/g, '').trim();
+                    const qty = parseFloat(itemMatch[2].replace(/,/g, '')) || 1;
+                    const price = parseFloat(itemMatch[3].replace(/,/g, '')) || 0;
+                    const total = parseFloat(itemMatch[4].replace(/,/g, '')) || 0;
+
+                    if (desc && desc.length > 1) {
+                        data.items.push({
+                            description: desc,
+                            quantity: qty,
+                            unitPrice: price,
+                            total: total || (qty * price)
+                        });
+                    }
+                } else if (itemLine.length > 5 && !itemLine.includes('Tax Type') && !itemLine.includes('Sub Type')) {
+                    // Alternative: just capture description if pattern doesn't match
+                    const cleanDesc = itemLine.replace(/[\d.,]/g, '').trim();
+                    if (cleanDesc.length > 2) {
+                        // Try to extract any numbers from the line
+                        const nums = itemLine.match(/(\d[\d,]*\.?\d*)/g);
+                        if (nums && nums.length >= 2) {
+                            data.items.push({
+                                description: cleanDesc.substring(0, 50),
+                                quantity: parseFloat(nums[0].replace(/,/g, '')) || 1,
+                                unitPrice: parseFloat(nums[nums.length-2].replace(/,/g, '')) || 0,
+                                total: parseFloat(nums[nums.length-1].replace(/,/g, '')) || 0
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
+        // Extract VAT Rate
+        if ((line.includes('Rate') && (line.includes('Value added') || line.includes('VAT'))) || 
+            (line.includes('14') && line.includes('%'))) {
+            const rateMatch = line.match(/(\d+\.?\d*)%/);
+            if (rateMatch) {
+                data.vatRate = parseFloat(rateMatch[1]);
+            }
+        }
+
+        // Extract Totals
+        if (line.toLowerCase().includes('total amount') || line.toLowerCase().includes('total sales')) {
+            const amountMatch = line.match(/([\d,]+\.?\d*)\s*(?:usd|jod|egp|ج\.?م)?$/i);
+            if (amountMatch) {
+                data.totalAmount = parseFloat(amountMatch[1].replace(/,/g, ''));
+            }
+        }
+
+        if (line.toLowerCase().includes('value added tax') && !line.toLowerCase().includes('rate')) {
+            const amountMatch = line.match(/([\d,]+\.?\d*)/);
+            if (amountMatch) {
+                data.vatAmount = parseFloat(amountMatch[1].replace(/,/g, ''));
+            }
+        }
+    }
+
+    // If no items found, try alternative parsing
+    if (data.items.length === 0) {
+        console.log('Trying alternative item extraction...');
+        
+        // Look for patterns that might indicate items
+        for (const line of lines) {
+            // Pattern: Text followed by numbers
+            const complexMatch = line.match(/^([A-Za-z\u0600-\u06FF\s\/\(\)]+)\s+([\d,]+\.?\d*)\s*([\d,]*\.?\d*)\s*([\d,]+\.?\d*)$/);
+            
+            if (complexMatch && complexMatch[1].trim().length > 3) {
+                const desc = complexMatch[1].trim();
+                const num1 = parseFloat(complexMatch[2].replace(/,/g, '')) || 0;
+                const num2 = complexMatch[3] ? parseFloat(complexMatch[3].replace(/,/g, '')) : 0;
+                const num3 = parseFloat(complexMatch[4].replace(/,/g, '')) || 0;
+
+                if (num1 > 0 && num3 > 0) {
+                    data.items.push({
+                        description: desc.substring(0, 60),
+                        quantity: num1,
+                        unitPrice: num2 || (num3 / num1),
+                        total: num3
+                    });
+                }
+            }
+        }
+    }
+
+    // Calculate subtotal if not found
+    if (data.subtotal === 0 && data.totalAmount > 0 && data.vatAmount > 0) {
+        data.subtotal = data.totalAmount - data.vatAmount;
+    }
+
+    console.log('📊 Extracted Data:', data);
+    return data;
+}
+
+// Fill invoice form with OCR data
+function fillInvoiceForm(data) {
+    // Fill client information
+    if (data.clientName) {
+        document.getElementById('newClientName').value = data.clientName;
+        document.getElementById('newClientNameGroup').style.display = 'block';
+        
+        // Check if client already exists
+        const existingClient = DB.clients.find(c => 
+            c.name === data.clientName || c.taxId === data.clientTaxId
+        );
+        
+        if (existingClient) {
+            document.getElementById('invClient').value = existingClient.id;
+            document.getElementById('newClientNameGroup').style.display = 'none';
+        } else {
+            document.getElementById('invClient').value = '__new__';
+        }
+    }
+
+    if (data.clientTaxId) {
+        document.getElementById('invTaxId').value = data.clientTaxId;
+    }
+
+    if (data.date) {
+        document.getElementById('invDate').value = data.date;
+    }
+
+    if (data.internalId) {
+        // Add to invoice ID as reference
+        const currentId = document.getElementById('invId').value;
+        document.getElementById('invId').value = currentId + '-REF-' + data.internalId;
+    }
+
+    // Fill VAT rate
+    if (data.vatRate) {
+        document.getElementById('vatRate').value = data.vatRate;
+    }
+
+    // Clear existing items and add extracted ones
+    document.getElementById('itemsBody').innerHTML = '';
+    itemCount = 0;
+
+    if (data.items && data.items.length > 0) {
+        data.items.forEach(item => {
+            addItemWithData(item.description, item.quantity, item.unitPrice);
+        });
+    } else {
+        // Add empty item if no items found
+        addItem();
+    }
+
+    // Recalculate totals
+    calcTotal();
+}
+
+// Add item with pre-filled data
+function addItemWithData(desc, qty, price) {
+    itemCount++;
+    const tr = document.createElement('tr');
+    tr.id = 'item-' + itemCount;
+    tr.innerHTML = `
+        <td>${itemCount}</td>
+        <td><input type="text" value="${desc}" placeholder="وصف البند..." class="item-desc" oninput="calcTotal()"></td>
+        <td><input type="number" value="${qty}" min="1" class="item-qty" oninput="calcTotal()"></td>
+        <td><input type="number" step="0.01" min="0" value="${price}" placeholder="0.00" class="item-price" oninput="calcTotal()"></td>
+        <td class="item-total">${(qty * price).toFixed(2)}</td>
+        <td>
+            <button type="button" class="action-btn" onclick="removeItem(${itemCount})" style="background:#ef4444;color:white;" ${itemCount <= 1 ? 'disabled' : ''}>
+                <i class="fas fa-times"></i>
+            </button>
+        </td>
+    `;
+    document.getElementById('itemsBody').appendChild(tr);
+}
+
+// Show OCR Results Summary
+function showOCRResults(data) {
+    const resultsDiv = document.getElementById('ocrResults');
+    const contentDiv = document.getElementById('ocrResultsContent');
+
+    let html = '';
+
+    if (data.clientName) {
+        html += `<div class="ocr-result-item">
+            <span class="ocr-result-label"><i class="fas fa-user"></i> اسم العميل:</span>
+            <span class="ocr-result-value">${data.clientName}</span>
+        </div>`;
+    }
+
+    if (data.clientTaxId) {
+        html += `<div class="ocr-result-item">
+            <span class="ocr-result-label"><i class="fas fa-id-card"></i> الرقم الضريبي:</span>
+            <span class="ocr-result-value">${data.clientTaxId}</span>
+        </div>`;
+    }
+
+    if (data.items && data.items.length > 0) {
+        html += `<div class="ocr-result-item">
+            <span class="ocr-result-label"><i class="fas fa-list"></i> عدد البنود:</span>
+            <span class="ocr-result-value">${data.items.length} بنود</span>
+        </div>`;
+        
+        data.items.forEach((item, idx) => {
+            html += `<div class="ocr-result-item" style="padding-right:1rem;background:rgba(37,99,235,0.1);margin:0.25rem 0;border-radius:6px;">
+                <span class="ocr-result-label">البند ${idx + 1}:</span>
+                <span class="ocr-result-value">${item.description} | الكمية: ${item.quantity} | السعر: ${item.unitPrice.toFixed(2)} ج.م</span>
+            </div>`;
+        });
+    }
+
+    if (data.vatRate) {
+        html += `<div class="ocr-result-item">
+            <span class="ocr-result-label"><i class="fas fa-percentage"></i> نسبة الضريبة:</span>
+            <span class="ocr-result-value">${data.vatRate}%</span>
+        </div>`;
+    }
+
+    if (data.totalAmount) {
+        html += `<div class="ocr-result-item" style="border-top:2px solid var(--success);margin-top:0.5rem;padding-top:0.5rem;">
+            <span class="ocr-result-label" style="font-size:1.1rem;"><i class="fas fa-money-bill-wave"></i> الإجمالي:</span>
+            <span class="ocr-result-value" style="font-size:1.2rem;">${data.totalAmount.toLocaleString()} ج.م</span>
+        </div>`;
+    }
+
+    if (!html) {
+        html = `<p style="color:var(--warning);text-align:center;">⚠️ لم يتمكن النظام من استخراج البيانات تلقائياً<br>يرجى مراجعة الصورة أو إدخال البيانات يدوياً</p>`;
+    }
+
+    contentDiv.innerHTML = html;
+    resultsDiv.classList.add('show');
+}
+
+// Drag and Drop support
+const uploadArea = document.getElementById('uploadArea');
+
+uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('dragover');
+});
+
+uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('dragover');
+});
+
+uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('dragover');
+    
+    const file = e.dataTransfer.files[0];
+    if (file) {
+        document.getElementById('invImage').files = e.dataTransfer.files;
+        handleInvoiceUpload({ target: { files: [file] } });
+    }
+});
+
+// ==========================================
+// INVOICE ITEMS MANAGEMENT
+// ==========================================
 function addItem() {
     itemCount++;
     const tr = document.createElement('tr');
@@ -1480,20 +2091,40 @@ function calcTotal() {
     return finalTotal;
 }
 
-function handleImageUpload(e) {
-    const file = e.target.files[0];
-    if (file) {
-        showToast('تم اختيار الصورة: ' + file.name, 'success');
-        // In production, OCR would process this image here
-    }
-}
-
 function saveInvoice() {
     const clientId = document.getElementById('invClient').value;
     const date = document.getElementById('invDate').value;
+    const clientNameInput = document.getElementById('newClientName').value.trim();
 
-    if (!clientId) { showToast('يرجى اختيار العميل', 'error'); return; }
-    if (!date) { showToast('يرجى إدخال التاريخ', 'error'); return; }
+    // Handle new client creation
+    let finalClientId = clientId;
+    
+    if (clientId === '__new__' || !clientId) {
+        if (!clientNameInput) {
+            showToast('يرجى اختيار أو إدخال اسم العميل', 'error');
+            return;
+        }
+        
+        // Create new client automatically
+        const newClient = {
+            id: genID('CLI'),
+            name: clientNameInput,
+            taxId: document.getElementById('invTaxId').value.trim(),
+            phone: '',
+            address: '',
+            email: '',
+            createdAt: new Date().toISOString()
+        };
+
+        DB.clients.push(newClient);
+        finalClientId = newClient.id;
+        showToast(`تم إنشاء عميل جديد: ${clientNameInput}`, 'success');
+    }
+
+    if (!date) {
+        showToast('يرجى إدخال التاريخ', 'error');
+        return;
+    }
 
     // Collect items
     const items = [];
@@ -1514,10 +2145,13 @@ function saveInvoice() {
 
     const finalTotal = calcTotal();
 
+    const clientObj = DB.clients.find(c => c.id === finalClientId);
+
     const invoice = {
         id: document.getElementById('invId').value,
-        clientId: clientId,
-        clientName: DB.clients.find(c => c.id === clientId)?.name || '',
+        clientId: finalClientId,
+        clientName: clientObj?.name || clientNameInput,
+        clientTaxId: clientObj?.taxId || document.getElementById('invTaxId').value,
         date: date,
         items: items,
         subtotal: parseFloat(document.getElementById('subtotal').textContent),
@@ -1544,9 +2178,6 @@ function saveInvoice() {
 }
 
 function resetInvoiceForm() {
-    document.getElementById('invClient').value = '';
-    document.getElementById('itemsBody').innerHTML = '';
-    itemCount = 0;
     initInvoice();
 }
 
@@ -1565,7 +2196,6 @@ function renderInvoices() {
         return matchSearch && matchClient && matchStatus;
     });
 
-    // Sort by date (newest first)
     filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     const tbody = document.getElementById('invoicesTable');
@@ -1937,7 +2567,6 @@ function refreshDashboard() {
     document.getElementById('statRemaining').textContent = remaining.toLocaleString('ar-EG', {maximumFractionDigits:2});
     animateNum('statClients', DB.clients.length);
 
-    // Recent invoices
     const recent = [...DB.invoices].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
     const tbody = document.getElementById('recentTable');
 
@@ -1997,7 +2626,6 @@ function refreshReports() {
     document.getElementById('rptAvg').textContent = avg.toLocaleString('ar-EG', {maximumFractionDigits:2});
     document.getElementById('rptOverdue').textContent = overdue;
 
-    // Status Chart
     const activeCount = DB.invoices.filter(i => i.status === 'active').length;
     const closedCount = DB.invoices.filter(i => i.status === 'closed').length;
 
@@ -2021,7 +2649,6 @@ function refreshReports() {
         }
     });
 
-    // Clients Chart
     const clientTotals = {};
     DB.invoices.forEach(i => { clientTotals[i.clientName] = (clientTotals[i.clientName] || 0) + i.finalTotal; });
     const sortedClients = Object.entries(clientTotals).sort((a,b) => b[1] - a[1]).slice(0, 5);
@@ -2058,7 +2685,8 @@ document.addEventListener('DOMContentLoaded', function() {
     refreshDashboard();
     updateClientSelects();
     
-    console.log('%c✅ Axentro System Loaded!', 'color:#2563eb;font-size:18px;font-weight:bold;');
+    console.log('%c🚀 Axentro Invoice System with OCR Loaded!', 'color:#2563eb;font-size:18px;font-weight:bold;');
+    console.log('%c✨ Supports Egyptian Tax Invoices (ETA)', 'color:#10b981;font-size:14px;');
 });
 
 // Keyboard shortcuts
