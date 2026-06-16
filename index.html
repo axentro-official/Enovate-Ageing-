@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Axentro - نظام إدارة الفواتير مع OCR</title>
+    <title>Axentro - نظام إدارة الفواتير مع OCR محسن</title>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -343,6 +343,7 @@
         .badge-success { background: rgba(16,185,129,0.2); color: #10b981; border: 1px solid #10b981; }
         .badge-info { background: rgba(59,130,246,0.2); color: #3b82f6; border: 1px solid #3b82f6; }
         .badge-danger { background: rgba(239,68,68,0.2); color: #ef4444; border: 1px solid #ef4444; }
+        .badge-warning { background: rgba(245,158,11,0.2); color: #f59e0b; border: 1px solid #f59e0b; }
 
         /* ===== PROGRESS BAR ===== */
         .progress-bar {
@@ -414,7 +415,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(15,23,42,0.95);
+            background: rgba(15,23,42,0.97);
             display: none;
             flex-direction: column;
             align-items: center;
@@ -762,6 +763,8 @@
             padding: 0.5rem 0;
             border-bottom: 1px solid var(--border);
             font-size: 0.95rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
 
         .ocr-result-item:last-child {
@@ -771,11 +774,13 @@
         .ocr-result-label {
             color: var(--text-gray);
             font-weight: 600;
+            min-width: 120px;
         }
 
         .ocr-result-value {
             color: var(--success);
             font-weight: 700;
+            text-align: left;
         }
 
         /* Image preview after upload */
@@ -785,11 +790,29 @@
             border-radius: 10px;
             margin-top: 1rem;
             display: none;
+            object-fit: contain;
+            background: white;
         }
 
         .image-preview.show {
             display: block;
         }
+
+        /* Currency Badge */
+        .currency-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.85rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-right: 0.5rem;
+        }
+
+        .currency-usd { background: rgba(34,197,94,0.2); color: #22c55e; border: 1px solid #22c55e; }
+        .currency-egp { background: rgba(239,68,68,0.2); color: #ef4444; border: 1px solid #ef4444; }
+        .currency-eur { background: rgba(59,130,246,0.2); color: #3b82f6; border: 1px solid #3b82f6; }
     </style>
 </head>
 <body>
@@ -885,17 +908,16 @@
                     <thead>
                         <tr>
                             <th>رقم الفاتورة</th>
+                            <th>العملة</th>
                             <th>العميل</th>
                             <th>التاريخ</th>
                             <th>الإجمالي</th>
-                            <th>المحصل</th>
-                            <th>المتبقي</th>
                             <th>الحالة</th>
                         </tr>
                     </thead>
                     <tbody id="recentTable">
                         <tr>
-                            <td colspan="7">
+                            <td colspan="6">
                                 <div class="empty-state">
                                     <i class="fas fa-inbox"></i>
                                     <h3>لا توجد فواتير</h3>
@@ -951,12 +973,12 @@
         </div>
     </section>
 
-    <!-- ==================== CREATE INVOICE WITH OCR ==================== -->
+    <!-- ==================== CREATE INVOICE WITH IMPROVED OCR ==================== -->
     <section id="invoice" class="section">
-        <h1 class="page-title"><i class="fas fa-file-invoice-dollar"></i> إنشاء فاتورة جديدة (مع قراءة تلقائية)</h1>
+        <h1 class="page-title"><i class="fas fa-file-invoice-dollar"></i> إنشاء فاتورة جديدة (OCR محسن v2.0)</h1>
 
         <div class="card">
-            <h2 class="card-title"><i class="fas fa-camera"></i> رفع صورة الفاتورة - سيتم قراءتها تلقائياً via OCR 🤖</h2>
+            <h2 class="card-title"><i class="fas fa-camera"></i> رفع صورة الفاتورة - قراءة تلقائية محسنة 🤖✨</h2>
             
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem;margin-bottom:1.5rem;">
                 <div class="form-group">
@@ -967,9 +989,20 @@
                     <label class="form-label">تاريخ الفاتورة *</label>
                     <input type="date" class="form-control" id="invDate">
                 </div>
+                <div class="form-group">
+                    <label class="form-label">العملة <span class="currency-badge currency-usd"><i class="fas fa-dollar-sign"></i> USD</span></label>
+                    <select class="form-control" id="invCurrency">
+                        <option value="USD">$ USD - دولار أمريكي</option>
+                        <option value="EGP">ج.م EGP - جنيه مصري</option>
+                        <option value="EUR">€ EUR - يورو</option>
+                        <option value="SAR">﷼ SAR - ريال سعودي</option>
+                        <option value="AED">AED AED - درهم إماراتي</option>
+                        <option value="OTHER">أخرى</option>
+                    </select>
+                </div>
             </div>
 
-            <!-- Upload Area with OCR -->
+            <!-- Upload Area with Improved OCR -->
             <div class="form-group">
                 <label class="form-label" style="font-size:1.1rem;color:#60a5fa;">
                     <i class="fas fa-magic"></i> ارفع صورة الفاتورة هنا (سيتم استخراج جميع البيانات تلقائياً)
@@ -981,7 +1014,8 @@
                         <div class="ocr-spinner"></div>
                         <div class="ocr-text">
                             <i class="fas fa-brain"></i><br>
-                            جاري قراءة الفاتورة بالذكاء الاصطناعي...
+                            جاري قراءة الفاتورة بالذكاء الاصطناعي...<br>
+                            <small style="color:var(--text-gray);">نظام OCR المحسن v2.0</small>
                         </div>
                         <div class="ocr-progress-container">
                             <div class="progress-bar">
@@ -993,7 +1027,7 @@
 
                     <i class="fas fa-cloud-upload-alt" id="uploadIcon"></i>
                     <p style="font-size:1.1rem;font-weight:600;" id="uploadText">اضغط هنا أو اسحب صورة الفاتورة</p>
-                    <p style="font-size:0.9rem;color:var(--text-gray);" id="uploadSubtext">PNG, JPG (حد أقصى 10MB) - يدعم الفواتير الضريبية المصرية</p>
+                    <p style="font-size:0.9rem;color:var(--text-gray);" id="uploadSubtext">PNG, JPG (حد أقصى 10MB) - يدعم جميع العملات (USD, EGP, EUR...)</p>
                     
                     <!-- Image Preview -->
                     <img id="imagePreview" class="image-preview" alt="Preview">
@@ -1003,7 +1037,10 @@
 
             <!-- OCR Results Preview -->
             <div class="ocr-result-preview" id="ocrResults">
-                <h3 style="color:var(--success);margin-bottom:1rem;"><i class="fas fa-check-circle"></i> تم استخراج البيانات التالية:</h3>
+                <h3 style="color:var(--success);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;">
+                    <i class="fas fa-check-circle"></i> تم استخراج البيانات بنجاح!
+                    <span id="detectedCurrencyBadge" class="currency-badge currency-usd" style="display:none;"></span>
+                </h3>
                 <div id="ocrResultsContent"></div>
             </div>
         </div>
@@ -1077,27 +1114,27 @@
 
                 <div class="summary-row">
                     <span>الإجمالي الفرعي (Subtotal):</span>
-                    <span id="subtotal">0.00 ج.م</span>
+                    <span id="subtotal">0.00</span>
                 </div>
                 <div class="summary-row">
                     <span>ضريبة القيمة المضافة (VAT):</span>
-                    <span id="vatAmount">0.00 ج.م</span>
+                    <span id="vatAmount">0.00</span>
                 </div>
                 <div class="summary-row">
                     <span>الإجمالي بعد الضريبة:</span>
-                    <span id="totalAfterVat">0.00 ج.م</span>
+                    <span id="totalAfterVat">0.00</span>
                 </div>
                 <div class="summary-row">
                     <span>خصم ضريبي:</span>
-                    <span id="taxDedAmount" style="color:#ef4444;">-0.00 ج.م</span>
+                    <span id="taxDedAmount" style="color:#ef4444;">-0.00</span>
                 </div>
                 <div class="summary-row">
                     <span>خصم عمالة:</span>
-                    <span id="laborDedAmount" style="color:#ef4444;">-0.00 ج.م</span>
+                    <span id="laborDedAmount" style="color:#ef4444;">-0.00</span>
                 </div>
                 <div class="summary-row">
                     <span>الإجمالي النهائي (Final Total):</span>
-                    <span id="finalTotal">0.00 ج.م</span>
+                    <span id="finalTotal">0.00</span>
                 </div>
             </div>
 
@@ -1126,6 +1163,12 @@
                 <option value="active">نشطة</option>
                 <option value="closed">مغلقة</option>
             </select>
+            <select class="form-control" id="filterCurrency" onchange="renderInvoices()">
+                <option value="">كل العملات</option>
+                <option value="USD">USD ($)</option>
+                <option value="EGP">EGP (ج.م)</option>
+                <option value="EUR">EUR (€)</option>
+            </select>
         </div>
 
         <div class="btn-group" style="justify-content:flex-end;">
@@ -1138,12 +1181,12 @@
                     <thead>
                         <tr>
                             <th>رقم الفاتورة</th>
+                            <th>العملة</th>
                             <th>العميل</th>
                             <th>التاريخ</th>
                             <th>الإجمالي</th>
                             <th>المحصل</th>
                             <th>المتبقي</th>
-                            <th>نسبة التحصيل</th>
                             <th>الحالة</th>
                             <th>إجراءات</th>
                         </tr>
@@ -1280,15 +1323,15 @@
                 <h4 style="margin-bottom:0.75rem;"><i class="fas fa-balance-scale"></i> المقارنة التلقائية</h4>
                 <div class="summary-row">
                     <span>قبل التحصيل:</span>
-                    <span id="payBefore">0 ج.م</span>
+                    <span id="payBefore">0</span>
                 </div>
                 <div class="summary-row">
                     <span>مبلغ التحصيل:</span>
-                    <span id="payAmtDisplay" style="color:var(--success);">+0 ج.م</span>
+                    <span id="payAmtDisplay" style="color:var(--success);">+0</span>
                 </div>
                 <div class="summary-row">
                     <span>بعد التحصيل:</span>
-                    <span id="payAfter" style="color:#60a5fa;font-weight:bold;">0 ج.م</span>
+                    <span id="payAfter" style="color:#60a5fa;font-weight:bold;">0</span>
                 </div>
                 <div style="margin-top:0.75rem;">
                     <span>نسبة التحصيل: </span>
@@ -1394,6 +1437,25 @@ function saveDB() {
 function genID(prefix) {
     return prefix + '-' + Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 5).toUpperCase();
 }
+
+// Currency symbols map
+const CURRENCY_SYMBOLS = {
+    'USD': '$',
+    'EGP': 'ج.م',
+    'EUR': '€',
+    'SAR': '﷼',
+    'AED': 'AED',
+    'OTHER': ''
+};
+
+const CURRENCY_NAMES = {
+    'USD': 'دولار أمريكي',
+    'EGP': 'جنيه مصري',
+    'EUR': 'يورو',
+    'SAR': 'ريال سعودي',
+    'AED': 'درهم إماراتي',
+    'OTHER': 'أخرى'
+};
 
 // ==========================================
 // NAVIGATION
@@ -1566,7 +1628,7 @@ function onClientSelect() {
 }
 
 // ==========================================
-// INVOICE - OCR SYSTEM
+// INVOICE - IMPROVED OCR SYSTEM V2.0
 // ==========================================
 let itemCount = 0;
 
@@ -1576,6 +1638,7 @@ function initInvoice() {
     document.getElementById('vatRate').value = 14;
     document.getElementById('taxDeduction').value = 0;
     document.getElementById('laborDeduction').value = 0;
+    document.getElementById('invCurrency').value = 'USD';
     
     // Reset upload area
     document.getElementById('uploadArea').classList.remove('processing', 'success');
@@ -1584,7 +1647,7 @@ function initInvoice() {
     document.getElementById('imagePreview').classList.remove('show');
     document.getElementById('uploadIcon').style.display = 'block';
     document.getElementById('uploadText').textContent = 'اضغط هنا أو اسحب صورة الفاتورة';
-    document.getElementById('uploadSubtext').textContent = 'PNG, JPG (حد أقصى 10MB) - يدعم الفواتير الضريبية المصرية';
+    document.getElementById('uploadSubtext').textContent = 'PNG, JPG (حد أقصى 10MB) - يدعم جميع العملات (USD, EGP, EUR...)';
     
     // Clear fields
     document.getElementById('invClient').value = '';
@@ -1598,7 +1661,7 @@ function initInvoice() {
     calcTotal();
 }
 
-// Handle Invoice Image Upload with OCR
+// Handle Invoice Image Upload with IMPROVED OCR
 async function handleInvoiceUpload(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -1635,9 +1698,9 @@ async function handleInvoiceUpload(e) {
     reader.readAsDataURL(file);
 
     try {
-        console.log('🚀 Starting OCR processing...');
+        console.log('🚀 Starting IMPROVED OCR processing v2.0...');
         
-        // Use Tesseract.js for OCR
+        // Use Tesseract.js for OCR with better settings
         const result = await Tesseract.recognize(file, 'ara+eng', {
             logger: m => {
                 if (m.status === 'recognizing text') {
@@ -1650,10 +1713,12 @@ async function handleInvoiceUpload(e) {
         });
 
         console.log('✅ OCR Completed!');
-        console.log('OCR Text:', result.data.text);
+        console.log('Full OCR Text:', result.data.text);
 
-        // Parse the OCR results for Egyptian Tax Invoice
-        const extractedData = parseEgyptianInvoice(result.data.text);
+        // Parse the OCR results with IMPROVED algorithm
+        const extractedData = parseEgyptianInvoiceImproved(result.data.text);
+
+        console.log('📊 Extracted Data:', extractedData);
 
         // Show success state
         uploadArea.classList.remove('processing');
@@ -1668,7 +1733,7 @@ async function handleInvoiceUpload(e) {
         // Show OCR results summary
         showOCRResults(extractedData);
 
-        showToast('✅ تم قراءة الفاتورة وتعبئة البيانات تلقائياً!', 'success');
+        showToast(`✅ تم قراءة ${extractedData.items.length > 0 ? extractedData.items.length + ' بنود' : 'البيانات'} بنجاح!`, 'success');
 
     } catch (error) {
         console.error('❌ OCR Error:', error);
@@ -1683,199 +1748,350 @@ async function handleInvoiceUpload(e) {
     }
 }
 
-// Parse Egyptian Tax Invoice (ETA format)
-function parseEgyptianInvoice(text) {
+// ==========================================
+// IMPROVED PARSING ALGORITHM V2.0
+// Specifically designed for Egyptian Tax Invoices (ETA)
+// ==========================================
+function parseEgyptianInvoiceImproved(text) {
     const data = {
         clientName: '',
         clientTaxId: '',
+        issuerTaxId: '',
         items: [],
         vatRate: 14,
         subtotal: 0,
         vatAmount: 0,
         totalAmount: 0,
         internalId: '',
-        date: ''
+        date: '',
+        currency: 'USD', // Default, will be detected
+        rawText: text
     };
 
-    const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
 
-    console.log('📝 Parsing invoice lines:', lines);
+    console.log('📝 Total lines to process:', lines.length);
 
-    // Extract Receiver (Client) Information
-    // Look for "Receiver (to)" section
-    let inReceiverSection = false;
+    // ========== STEP 1: Detect Currency ==========
+    const upperText = text.toUpperCase();
+    if (upperText.includes('USD') || upperText.includes('$') || upperText.includes('U.S.D')) {
+        data.currency = 'USD';
+    } else if (upperText.includes('EGP') || upperText.includes('ج.م') || upperText.includes('EGP')) {
+        data.currency = 'EGP';
+    } else if (upperText.includes('EUR') || upperText.includes('€')) {
+        data.currency = 'EUR';
+    } else if (upperText.includes('SAR') || upperText.includes('﷼')) {
+        data.currency = 'SAR';
+    } else if (upperText.includes('AED')) {
+        data.currency = 'AED';
+    }
+
+    console.log('💰 Detected Currency:', data.currency);
+
+    // ========== STEP 2: Extract Client (Receiver) Information ==========
+    let receiverSectionFound = false;
+    let potentialClientName = '';
+    let potentialClientTaxId = '';
+    
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        
-        // Detect Receiver section
-        if (line.includes('Receiver') || line.includes('المستلم') || line.includes('to)')) {
-            inReceiverSection = true;
+        const lowerLine = line.toLowerCase();
+
+        // Detect start of Receiver section
+        if (lowerLine.includes('receiver') || lowerLine.includes('المستلم') || line.includes('(to)')) {
+            receiverSectionFound = true;
+            console.log('📍 Found Receiver section at line', i);
             continue;
         }
 
-        // Exit receiver section when we hit Order Details or Line Items
-        if (line.includes('Order Details') || line.includes('Line Items') || line.includes('البنود')) {
-            inReceiverSection = false;
+        // Detect end of Receiver section
+        if (receiverSectionFound && (
+            lowerLine.includes('order details') || 
+            lowerLine.includes('line items') || 
+            lowerLine.includes('البنود') ||
+            lowerLine.includes('issuer (from)')
+        )) {
+            receiverSectionFound = false;
+            console.log('📍 End of Receiver section at line', i);
         }
 
-        // Extract client name and tax ID from receiver section
-        if (inReceiverSection) {
-            // Client Name (usually first non-empty line after "Name")
-            if (line.toLowerCase().includes('name') || line.includes('اسم')) {
-                // Next line should be the actual name
-                if (i + 1 < lines.length && !lines[i+1].toLowerCase().includes('registration') && !lines[i+1].toLowerCase().includes('type')) {
-                    data.clientName = lines[i+1].trim();
-                }
-            }
-            
-            // Registration Number (Tax ID)
-            if (line.toLowerCase().includes('registration number') || line.includes('رقم تسجيل')) {
-                const nextLine = lines[i + 1] || '';
-                // Extract numbers only
-                const match = nextLine.match(/\d+/);
-                if (match) {
-                    data.clientTaxId = match[0];
-                }
-            }
-        }
-
-        // Extract Internal ID
-        if (line.toLowerCase().includes('internal id') || line.includes('Internal ID')) {
-            const match = line.match(/(\d+)/);
-            if (match) {
-                data.internalId = match[1];
-            }
-        }
-
-        // Extract dates
-        if (line.toLowerCase().includes('issuance date') || line.toLowerCase().includes('issue date')) {
-            // Try to extract date in various formats
-            const dateMatch = line.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
-            if (dateMatch) {
-                const parts = dateMatch[1].split('/');
-                if (parts.length === 3) {
-                    data.date = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
-                }
-            }
-        }
-
-        // Extract Line Items
-        if (line.includes('Line Items') || line.includes('البنود')) {
-            // Start looking for items in next lines
-            for (let j = i + 1; j < lines.length; j++) {
-                const itemLine = lines[j];
-                
-                // Stop at totals section
-                if (itemLine.includes('Total Sales') || itemLine.includes('Total Amount') || itemLine.includes('الإجمالي')) {
-                    break;
-                }
-
-                // Skip header rows
-                if (itemLine.includes('Code') || itemLine.includes('Description') || itemLine.includes('Quantity') || 
-                    itemLine.includes('Unit Price') || itemLine.includes('All Currency') || itemLine.includes('---')) {
-                    continue;
-                }
-
-                // Try to extract item data
-                // Look for patterns like: Description ... Quantity Price Total
-                const itemMatch = itemLine.match(/(.+?)\s+(\d[\d,]*\.?\d*)\s+(\d[\d,]*\.?\d*)\s+(\d[\d,]*\.?\d*)/);
-                
-                if (itemMatch) {
-                    const desc = itemMatch[1].replace(/[^\w\s\u0600-\u06FF]/g, '').trim();
-                    const qty = parseFloat(itemMatch[2].replace(/,/g, '')) || 1;
-                    const price = parseFloat(itemMatch[3].replace(/,/g, '')) || 0;
-                    const total = parseFloat(itemMatch[4].replace(/,/g, '')) || 0;
-
-                    if (desc && desc.length > 1) {
-                        data.items.push({
-                            description: desc,
-                            quantity: qty,
-                            unitPrice: price,
-                            total: total || (qty * price)
-                        });
-                    }
-                } else if (itemLine.length > 5 && !itemLine.includes('Tax Type') && !itemLine.includes('Sub Type')) {
-                    // Alternative: just capture description if pattern doesn't match
-                    const cleanDesc = itemLine.replace(/[\d.,]/g, '').trim();
-                    if (cleanDesc.length > 2) {
-                        // Try to extract any numbers from the line
-                        const nums = itemLine.match(/(\d[\d,]*\.?\d*)/g);
-                        if (nums && nums.length >= 2) {
-                            data.items.push({
-                                description: cleanDesc.substring(0, 50),
-                                quantity: parseFloat(nums[0].replace(/,/g, '')) || 1,
-                                unitPrice: parseFloat(nums[nums.length-2].replace(/,/g, '')) || 0,
-                                total: parseFloat(nums[nums.length-1].replace(/,/g, '')) || 0
-                            });
+        // Extract data within Receiver section
+        if (receiverSectionFound) {
+            // Look for Name field
+            if (lowerLine.includes('name') || lowerLine.includes('اسم')) {
+                // Next non-empty line that doesn't look like a label is likely the name
+                for (let j = i + 1; j < Math.min(i + 3, lines.length); j++) {
+                    const nextLine = lines[j].trim();
+                    // Skip if it's another label
+                    if (nextLine && !nextLine.toLowerCase().match(/^(registration|type|address|branch|tax)/)) {
+                        // Clean up the name - remove numbers and special chars at end
+                        let name = nextLine.replace(/\d{10,}$/, '').trim();
+                        name = name.replace(/[|\/\\]/g, '').trim();
+                        if (name.length > 2 && name.length < 100) {
+                            potentialClientName = name;
+                            console.log('✅ Found Client Name:', name);
+                            break;
                         }
                     }
                 }
             }
-        }
 
-        // Extract VAT Rate
-        if ((line.includes('Rate') && (line.includes('Value added') || line.includes('VAT'))) || 
-            (line.includes('14') && line.includes('%'))) {
-            const rateMatch = line.match(/(\d+\.?\d*)%/);
-            if (rateMatch) {
-                data.vatRate = parseFloat(rateMatch[1]);
+            // Look for Registration Number (Tax ID)
+            if (lowerLine.includes('registration number') || lowerLine.includes('رقم تسجيل')) {
+                for (let j = i + 1; j < Math.min(i + 3, lines.length); j++) {
+                    const nextLine = lines[j].trim();
+                    // Look for numeric pattern (tax IDs are usually 9-15 digits)
+                    const taxMatch = nextLine.match(/^(\d{9,15})$/);
+                    if (taxMatch) {
+                        potentialClientTaxId = taxMatch[1];
+                        console.log('✅ Found Client Tax ID:', taxMatch[1]);
+                        break;
+                    }
+                }
             }
         }
 
-        // Extract Totals
-        if (line.toLowerCase().includes('total amount') || line.toLowerCase().includes('total sales')) {
-            const amountMatch = line.match(/([\d,]+\.?\d*)\s*(?:usd|jod|egp|ج\.?م)?$/i);
-            if (amountMatch) {
-                data.totalAmount = parseFloat(amountMatch[1].replace(/,/g, ''));
-            }
-        }
-
-        if (line.toLowerCase().includes('value added tax') && !line.toLowerCase().includes('rate')) {
-            const amountMatch = line.match(/([\d,]+\.?\d*)/);
-            if (amountMatch) {
-                data.vatAmount = parseFloat(amountMatch[1].replace(/,/g, ''));
+        // Also look for Issuer Tax ID (sometimes useful)
+        if (lowerLine.includes('issuer rin') || lowerLine.includes('issuer r.i.n') || (lowerLine.includes('issuer') && lowerLine.includes('rin'))) {
+            const issuerMatch = line.match(/(\d{9,15})/);
+            if (issuerMatch) {
+                data.issuerTaxId = issuerMatch[1];
+                console.log('✅ Found Issuer Tax ID:', issuerMatch[1]);
             }
         }
     }
 
-    // If no items found, try alternative parsing
-    if (data.items.length === 0) {
-        console.log('Trying alternative item extraction...');
-        
-        // Look for patterns that might indicate items
-        for (const line of lines) {
-            // Pattern: Text followed by numbers
-            const complexMatch = line.match(/^([A-Za-z\u0600-\u06FF\s\/\(\)]+)\s+([\d,]+\.?\d*)\s*([\d,]*\.?\d*)\s*([\d,]+\.?\d*)$/);
-            
-            if (complexMatch && complexMatch[1].trim().length > 3) {
-                const desc = complexMatch[1].trim();
-                const num1 = parseFloat(complexMatch[2].replace(/,/g, '')) || 0;
-                const num2 = complexMatch[3] ? parseFloat(complexMatch[3].replace(/,/g, '')) : 0;
-                const num3 = parseFloat(complexMatch[4].replace(/,/g, '')) || 0;
+    data.clientName = potentialClientName;
+    data.clientTaxId = potentialClientTaxId;
 
-                if (num1 > 0 && num3 > 0) {
-                    data.items.push({
-                        description: desc.substring(0, 60),
-                        quantity: num1,
-                        unitPrice: num2 || (num3 / num1),
-                        total: num3
-                    });
+    // ========== STEP 3: Extract Internal ID & Date ==========
+    for (const line of lines) {
+        // Internal ID
+        if (line.toLowerCase().includes('internal id') && !line.toLowerCase().includes('reference')) {
+            const match = line.match(/(\d+)/);
+            if (match) {
+                data.internalId = match[1];
+                console.log('✅ Found Internal ID:', match[1]);
+            }
+        }
+
+        // Dates - multiple formats
+        if ((line.toLowerCase().includes('issuance date') || line.toLowerCase().includes('submission date')) && line.includes('/')) {
+            const dateMatches = line.match(/(\d{1,2}\/\d{1,2}\/\d{4})/g);
+            if (dateMatches && dateMatches.length > 0) {
+                // Use the last date found (usually issuance date)
+                const parts = dateMatches[dateMatches.length - 1].split('/');
+                if (parts.length === 3) {
+                    data.date = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+                    console.log('✅ Found Date:', data.date);
                 }
             }
         }
     }
 
-    // Calculate subtotal if not found
-    if (data.subtotal === 0 && data.totalAmount > 0 && data.vatAmount > 0) {
-        data.subtotal = data.totalAmount - data.vatAmount;
+    // ========== STEP 4: Extract Line Items (CRITICAL FIX) ==========
+    let inItemsSection = false;
+    let itemHeaderFound = false;
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const lowerLine = line.toLowerCase();
+
+        // Detect Line Items section
+        if (lowerLine.includes('line items') || lowerLine.includes('البنود') || lowerLine.includes('* all currency')) {
+            inItemsSection = true;
+            itemHeaderFound = true;
+            console.log('📍 Found Line Items section at line', i);
+            continue;
+        }
+
+        // Exit items section when we hit totals
+        if (inItemsSection && (
+            lowerLine.includes('total sales') || 
+            lowerLine.includes('total amount') ||
+            lowerLine.includes('total taxable') ||
+            lowerLine.includes('total discount') ||
+            lowerLine.includes('value added tax amount') ||
+            lowerLine.includes('extra invoice discounts') ||
+            lowerLine.includes('this invoice has been generated')
+        )) {
+            inItemsSection = false;
+            console.log('📍 End of Line Items section at line', i);
+            break; // Stop processing, we have our items
+        }
+
+        // Skip header rows in items section
+        if (inItemsSection && !itemHeaderFound) {
+            if (lowerLine.includes('code') || lowerLine.includes('description') || lowerLine.includes('quantity') || 
+                lowerLine.includes('unit price') || lowerLine.includes('total sales') || lowerLine.includes('discount')) {
+                continue;
+            }
+            itemHeaderFound = true;
+        }
+
+        // Try to extract item data
+        if (inItemsSection && itemHeaderFound && line.length > 5) {
+            // Skip empty lines and separators
+            if (line.match(/^[-=\s]+$/) || line === '---' || line === '') continue;
+
+            // Skip obvious non-item lines
+            if (lowerLine.includes('tax type') || lowerLine.includes('sub type') || lowerLine.includes('rate') || 
+                lowerLine.includes('amount') || lowerLine.includes('total tax')) continue;
+
+            console.log('🔍 Processing potential item line:', line.substring(0, 80));
+
+            // IMPROVED PATTERN: Look for item with format:
+            // Description [numbers] [numbers] [numbers]
+            // Example: Magnetic Card/بطاقة ... EG-577225146-2/ 95,000.00 / 1.00 95,000.00 0.00 ...
+            
+            // Pattern 1: Arabic/English description followed by numbers
+            const pattern1 = /^(.+?)\s+(?:EG-?\d*\/?\s*)?([\d,]+\.?\d*)\s*\/\s*([\d,]+\.?\d*)\s+([\d,]+\.?\d*)/;
+            const match1 = line.match(pattern1);
+            
+            if (match1) {
+                let desc = match1[1].trim();
+                const codeOrQty = parseFloat(match1[2].replace(/,/g, '')) || 0;
+                const qty = parseFloat(match1[3].replace(/,/g, '')) || 1;
+                const total = parseFloat(match1[4].replace(/,/g, '')) || 0;
+
+                // Clean up description
+                desc = desc.replace(/\s+/g, ' ').trim();
+                desc = desc.replace(/^\d+\s*/, ''); // Remove leading numbers
+                desc = desc.substring(0, 80); // Limit length
+
+                if (desc.length >= 2 && total > 0) {
+                    const unitPrice = qty > 0 ? total / qty : total;
+                    
+                    data.items.push({
+                        description: desc,
+                        quantity: qty,
+                        unitPrice: unitPrice,
+                        total: total
+                    });
+                    console.log('✅ Extracted Item (Pattern 1):', {desc, qty, unitPrice, total});
+                    continue;
+                }
+            }
+
+            // Pattern 2: Just description and big number (for simple invoices)
+            const pattern2 = /^([A-Za-z\u0600-\u06FF\s\/\(\)\-\.,]+?)\s+([\d,]{5,}\.\d{2})$/;
+            const match2 = line.match(pattern2);
+            
+            if (match2 && !match2[1].match(/^(code|description|name|type)$/i)) {
+                let desc = match2[1].trim();
+                const total = parseFloat(match2[2].replace(/,/g, '')) || 0;
+
+                desc = desc.replace(/\s+/g, ' ').trim();
+                desc = desc.substring(0, 80);
+
+                if (desc.length >= 2 && total > 0) {
+                    data.items.push({
+                        description: desc,
+                        quantity: 1,
+                        unitPrice: total,
+                        total: total
+                    });
+                    console.log('✅ Extracted Item (Pattern 2):', {desc, total});
+                }
+            }
+        }
     }
 
-    console.log('📊 Extracted Data:', data);
+    // If no items found with above patterns, try alternative extraction
+    if (data.items.length === 0) {
+        console.log('⚠️ No items found with standard patterns, trying alternative...');
+        
+        // Look for any line with large numbers that could be an item
+        for (const line of lines) {
+            // Find lines with amounts like 95,000.00 or 108,300.00
+            const amountPattern = /([\d,]+\.\d{2})(?:\s*(?:usd|jod|egp|\$))?/gi;
+            const amounts = [];
+            let match;
+            while ((match = amountPattern.exec(line)) !== null) {
+                const val = parseFloat(match[1].replace(/,/g, ''));
+                if (val > 100) { // Only consider significant amounts
+                    amounts.push(val);
+                }
+            }
+
+            // If we found 2+ significant amounts, this might be an item line
+            if (amounts.length >= 2) {
+                const desc = line.replace(/[\d,\.\/]+/g, '').replace(/\s+/g, ' ').trim();
+                if (desc.length >= 2 && desc.length <= 80) {
+                    data.items.push({
+                        description: desc,
+                        quantity: 1,
+                        unitPrice: amounts[amounts.length - 1],
+                        total: amounts[amounts.length - 1]
+                    });
+                    console.log('✅ Extracted Item (Alternative):', desc, amounts);
+                }
+            }
+        }
+    }
+
+    // ========== STEP 5: Extract Totals ==========
+    for (const line of lines) {
+        const lowerLine = line.toLowerCase();
+
+        // Total Amount (the final total)
+        if ((lowerLine.includes('total amount') || lowerLine.includes('total amount (')) && !lowerLine.includes('taxable') && !lowerLine.includes('discount')) {
+            const amountMatch = line.match(/([\d,]+\.?\d*)\s*(?:usd|jod|egp|\$)?\s*$/);
+            if (amountMatch) {
+                data.totalAmount = parseFloat(amountMatch[1].replace(/,/g, ''));
+                console.log('✅ Found Total Amount:', data.totalAmount);
+            }
+        }
+
+        // Total Sales (subtotal before tax)
+        if (lowerLine.includes('total sales') && !lowerLine.includes('discount') && !lowerLine.includes('items')) {
+            const amountMatch = line.match(/([\d,]+\.?\d*)/);
+            if (amountMatch) {
+                data.subtotal = parseFloat(amountMatch[1].replace(/,/g, ''));
+                console.log('✅ Found Subtotal (Total Sales):', data.subtotal);
+            }
+        }
+
+        // VAT Amount
+        if ((lowerLine.includes('value added tax') || lowerLine.includes('vat amount')) && !lowerLine.includes('rate') && !lowerLine.includes('sub type')) {
+            const amountMatch = line.match(/([\d,]+\.?\d*)/);
+            if (amountMatch) {
+                data.vatAmount = parseFloat(amountMatch[1].replace(/,/g, ''));
+                console.log('✅ Found VAT Amount:', data.vatAmount);
+            }
+        }
+
+        // VAT Rate
+        if ((lowerLine.includes('rate') && (lowerLine.includes('value added') || lowerLine.includes('vat'))) || 
+            (line.match(/14\.00%/) || line.match(/14%/))) {
+            const rateMatch = line.match(/(\d+\.?\d*)%/);
+            if (rateMatch) {
+                data.vatRate = parseFloat(rateMatch[1]);
+                console.log('✅ Found VAT Rate:', data.vatRate, '%');
+            }
+        }
+    }
+
+    // Calculate missing values
+    if (data.totalAmount === 0 && data.subtotal > 0 && data.vatAmount > 0) {
+        data.totalAmount = data.subtotal + data.vatAmount;
+    }
+
+    if (data.subtotal === 0 && data.items.length > 0) {
+        data.subtotal = data.items.reduce((sum, item) => sum + item.total, 0);
+    }
+
+    console.log('🎯 FINAL EXTRACTED DATA:', data);
     return data;
 }
 
 // Fill invoice form with OCR data
 function fillInvoiceForm(data) {
+    // Set Currency
+    if (data.currency) {
+        document.getElementById('invCurrency').value = data.currency;
+    }
+
     // Fill client information
     if (data.clientName) {
         document.getElementById('newClientName').value = data.clientName;
@@ -1903,7 +2119,6 @@ function fillInvoiceForm(data) {
     }
 
     if (data.internalId) {
-        // Add to invoice ID as reference
         const currentId = document.getElementById('invId').value;
         document.getElementById('invId').value = currentId + '-REF-' + data.internalId;
     }
@@ -1939,7 +2154,7 @@ function addItemWithData(desc, qty, price) {
         <td>${itemCount}</td>
         <td><input type="text" value="${desc}" placeholder="وصف البند..." class="item-desc" oninput="calcTotal()"></td>
         <td><input type="number" value="${qty}" min="1" class="item-qty" oninput="calcTotal()"></td>
-        <td><input type="number" step="0.01" min="0" value="${price}" placeholder="0.00" class="item-price" oninput="calcTotal()"></td>
+        <td><input type="number" step="0.01" min="0" value="${price.toFixed(2)}" placeholder="0.00" class="item-price" oninput="calcTotal()"></td>
         <td class="item-total">${(qty * price).toFixed(2)}</td>
         <td>
             <button type="button" class="action-btn" onclick="removeItem(${itemCount})" style="background:#ef4444;color:white;" ${itemCount <= 1 ? 'disabled' : ''}>
@@ -1954,8 +2169,18 @@ function addItemWithData(desc, qty, price) {
 function showOCRResults(data) {
     const resultsDiv = document.getElementById('ocrResults');
     const contentDiv = document.getElementById('ocrResultsContent');
+    const currencyBadge = document.getElementById('detectedCurrencyBadge');
 
     let html = '';
+
+    // Show detected currency prominently
+    if (data.currency) {
+        const symbol = CURRENCY_SYMBOLS[data.currency] || '';
+        const name = CURRENCY_NAMES[data.currency] || data.currency;
+        currencyBadge.textContent = `${symbol} ${name}`;
+        currencyBadge.className = `currency-badge currency-${data.currency.toLowerCase()}`;
+        currencyBadge.style.display = 'inline-flex';
+    }
 
     if (data.clientName) {
         html += `<div class="ocr-result-item">
@@ -1971,6 +2196,13 @@ function showOCRResults(data) {
         </div>`;
     }
 
+    if (data.internalId) {
+        html += `<div class="ocr-result-item">
+            <span class="ocr-result-label"><i class="fas fa-hashtag"></i> Internal ID:</span>
+            <span class="ocr-result-value">${data.internalId}</span>
+        </div>`;
+    }
+
     if (data.items && data.items.length > 0) {
         html += `<div class="ocr-result-item">
             <span class="ocr-result-label"><i class="fas fa-list"></i> عدد البنود:</span>
@@ -1978,9 +2210,11 @@ function showOCRResults(data) {
         </div>`;
         
         data.items.forEach((item, idx) => {
+            const symbol = CURRENCY_SYMBOLS[data.currency] || '';
             html += `<div class="ocr-result-item" style="padding-right:1rem;background:rgba(37,99,235,0.1);margin:0.25rem 0;border-radius:6px;">
                 <span class="ocr-result-label">البند ${idx + 1}:</span>
-                <span class="ocr-result-value">${item.description} | الكمية: ${item.quantity} | السعر: ${item.unitPrice.toFixed(2)} ج.م</span>
+                <span class="ocr-result-value">${item.description}<br>
+                <small style="color:var(--text-gray);">الكمية: ${item.quantity.toLocaleString()} | السعر: ${symbol}${item.unitPrice.toLocaleString()} | الإجمالي: ${symbol}${item.total.toLocaleString()}</small></span>
             </div>`;
         });
     }
@@ -1992,15 +2226,36 @@ function showOCRResults(data) {
         </div>`;
     }
 
-    if (data.totalAmount) {
+    if (data.subtotal > 0) {
+        const symbol = CURRENCY_SYMBOLS[data.currency] || '';
+        html += `<div class="ocr-result-item">
+            <span class="ocr-result-label"><i class="fas fa-calculator"></i> الإجمالي الفرعي:</span>
+            <span class="ocr-result-value">${symbol}${data.subtotal.toLocaleString()}</span>
+        </div>`;
+    }
+
+    if (data.vatAmount > 0) {
+        const symbol = CURRENCY_SYMBOLS[data.currency] || '';
+        html += `<div class="ocr-result-item">
+            <span class="ocr-result-label"><i class="fas fa-receipt"></i> ضريبة القيمة المضافة:</span>
+            <span class="ocr-result-value">${symbol}${data.vatAmount.toLocaleString()}</span>
+        </div>`;
+    }
+
+    if (data.totalAmount > 0) {
+        const symbol = CURRENCY_SYMBOLS[data.currency] || '';
         html += `<div class="ocr-result-item" style="border-top:2px solid var(--success);margin-top:0.5rem;padding-top:0.5rem;">
-            <span class="ocr-result-label" style="font-size:1.1rem;"><i class="fas fa-money-bill-wave"></i> الإجمالي:</span>
-            <span class="ocr-result-value" style="font-size:1.2rem;">${data.totalAmount.toLocaleString()} ج.م</span>
+            <span class="ocr-result-label" style="font-size:1.1rem;"><i class="fas fa-money-bill-wave"></i> الإجمالي النهائي:</span>
+            <span class="ocr-result-value" style="font-size:1.3rem;">${symbol}${data.totalAmount.toLocaleString()}</span>
         </div>`;
     }
 
     if (!html) {
-        html = `<p style="color:var(--warning);text-align:center;">⚠️ لم يتمكن النظام من استخراج البيانات تلقائياً<br>يرجى مراجعة الصورة أو إدخال البيانات يدوياً</p>`;
+        html = `<p style="color:var(--warning);text-align:center;padding:1rem;">
+            <i class="fas fa-exclamation-triangle" style="font-size:2rem;margin-bottom:0.5rem;display:block;"></i>
+            ⚠️ لم يتمكن النظام من استخراج البيانات تلقائياً<br>
+            <small>يرجى مراجعة الصورة أو إدخال البيانات يدوياً</small>
+        </p>`;
     }
 
     contentDiv.innerHTML = html;
@@ -2061,13 +2316,16 @@ function removeItem(id) {
 }
 
 function calcTotal() {
+    const currency = document.getElementById('invCurrency').value;
+    const symbol = CURRENCY_SYMBOLS[currency] || '';
+    
     let subtotal = 0;
     
     document.querySelectorAll('#itemsBody tr').forEach(row => {
         const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
         const price = parseFloat(row.querySelector('.item-price').value) || 0;
         const total = qty * price;
-        row.querySelector('.item-total').textContent = total.toFixed(2);
+        row.querySelector('.item-total').textContent = symbol + total.toFixed(2);
         subtotal += total;
     });
 
@@ -2081,12 +2339,12 @@ function calcTotal() {
     const laborDedAmount = totalAfterVat * (laborDedRate / 100);
     const finalTotal = totalAfterVat - taxDedAmount - laborDedAmount;
 
-    document.getElementById('subtotal').textContent = subtotal.toFixed(2) + ' ج.م';
-    document.getElementById('vatAmount').textContent = vatAmount.toFixed(2) + ' ج.م';
-    document.getElementById('totalAfterVat').textContent = totalAfterVat.toFixed(2) + ' ج.م';
-    document.getElementById('taxDedAmount').textContent = '-' + taxDedAmount.toFixed(2) + ' ج.م';
-    document.getElementById('laborDedAmount').textContent = '-' + laborDedAmount.toFixed(2) + ' ج.م';
-    document.getElementById('finalTotal').textContent = finalTotal.toFixed(2) + ' ج.م';
+    document.getElementById('subtotal').textContent = symbol + subtotal.toFixed(2);
+    document.getElementById('vatAmount').textContent = symbol + vatAmount.toFixed(2);
+    document.getElementById('totalAfterVat').textContent = symbol + totalAfterVat.toFixed(2);
+    document.getElementById('taxDedAmount').textContent = '-' + symbol + taxDedAmount.toFixed(2);
+    document.getElementById('laborDedAmount').textContent = '-' + symbol + laborDedAmount.toFixed(2);
+    document.getElementById('finalTotal').textContent = symbol + finalTotal.toFixed(2);
 
     return finalTotal;
 }
@@ -2095,6 +2353,7 @@ function saveInvoice() {
     const clientId = document.getElementById('invClient').value;
     const date = document.getElementById('invDate').value;
     const clientNameInput = document.getElementById('newClientName').value.trim();
+    const currency = document.getElementById('invCurrency').value;
 
     // Handle new client creation
     let finalClientId = clientId;
@@ -2153,15 +2412,16 @@ function saveInvoice() {
         clientName: clientObj?.name || clientNameInput,
         clientTaxId: clientObj?.taxId || document.getElementById('invTaxId').value,
         date: date,
+        currency: currency,
         items: items,
-        subtotal: parseFloat(document.getElementById('subtotal').textContent),
+        subtotal: parseFloat(document.getElementById('subtotal').textContent.replace(/[^\d.-]/g, '')),
         vatRate: parseFloat(document.getElementById('vatRate').value),
-        vatAmount: parseFloat(document.getElementById('vatAmount').textContent),
-        totalAfterVat: parseFloat(document.getElementById('totalAfterVat').textContent),
+        vatAmount: parseFloat(document.getElementById('vatAmount').textContent.replace(/[^\d.-]/g, '')),
+        totalAfterVat: parseFloat(document.getElementById('totalAfterVat').textContent.replace(/[^\d.-]/g, '')),
         taxDeductionRate: parseFloat(document.getElementById('taxDeduction').value),
-        taxDeductionAmount: parseFloat(document.getElementById('taxDedAmount').textContent.replace('-', '')),
+        taxDeductionAmount: parseFloat(document.getElementById('taxDedAmount').textContent.replace(/[^\d.-]/g, '')),
         laborDeductionRate: parseFloat(document.getElementById('laborDeduction').value),
-        laborDeductionAmount: parseFloat(document.getElementById('laborDedAmount').textContent.replace('-', '')),
+        laborDeductionAmount: parseFloat(document.getElementById('laborDedAmount').textContent.replace(/[^\d.-]/g, '')),
         finalTotal: finalTotal,
         collected: 0,
         remaining: finalTotal,
@@ -2172,7 +2432,7 @@ function saveInvoice() {
     DB.invoices.push(invoice);
     saveDB();
 
-    showToast('تم حفظ الفاتورة بنجاح ✓');
+    showToast(`✅ تم حفظ الفاتورة (${currency}: ${finalTotal.toLocaleString()})`);
     resetInvoiceForm();
     showSection('invoices');
 }
@@ -2188,12 +2448,14 @@ function renderInvoices() {
     const search = document.getElementById('invSearch').value.toLowerCase();
     const clientFilter = document.getElementById('filterClient').value;
     const statusFilter = document.getElementById('filterStatus').value;
+    const currencyFilter = document.getElementById('filterCurrency').value;
 
     let filtered = DB.invoices.filter(inv => {
         const matchSearch = inv.id.toLowerCase().includes(search) || inv.clientName.toLowerCase().includes(search);
         const matchClient = !clientFilter || inv.clientId === clientFilter;
         const matchStatus = !statusFilter || inv.status === statusFilter;
-        return matchSearch && matchClient && matchStatus;
+        const matchCurrency = !currencyFilter || inv.currency === currencyFilter;
+        return matchSearch && matchClient && matchStatus && matchCurrency;
     });
 
     filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -2215,20 +2477,18 @@ function renderInvoices() {
         const rate = inv.finalTotal > 0 ? ((inv.collected / inv.finalTotal) * 100) : 0;
         const badgeClass = inv.status === 'active' ? 'badge-success' : 'badge-info';
         const statusText = inv.status === 'active' ? 'نشطة' : 'مغلقة';
+        const symbol = CURRENCY_SYMBOLS[inv.currency] || '';
+        const currencyBadgeClass = `currency-badge currency-${inv.currency.toLowerCase()}`;
         
         return `
             <tr>
                 <td><strong>${inv.id}</strong></td>
+                <td><span class="${currencyBadgeClass}">${symbol} ${inv.currency}</span></td>
                 <td>${inv.clientName}</td>
                 <td>${inv.date}</td>
-                <td>${inv.finalTotal.toFixed(2)} ج.م</td>
-                <td style="color:#10b981;font-weight:bold;">${inv.collected.toFixed(2)} ج.م</td>
-                <td style="color:#ef4444;font-weight:bold;">${inv.remaining.toFixed(2)} ج.م</td>
-                <td>
-                    <div class="progress-bar" style="height:20px;width:80px;">
-                        <div class="progress-fill" style="width:${Math.min(rate,100)}%;font-size:0.7rem;">${rate.toFixed(0)}%</div>
-                    </div>
-                </td>
+                <td style="color:var(--primary);font-weight:bold;">${symbol}${inv.finalTotal.toLocaleString()}</td>
+                <td style="color:#10b981;font-weight:bold;">${symbol}${inv.collected.toLocaleString()}</td>
+                <td style="color:#ef4444;font-weight:bold;">${symbol}${inv.remaining.toLocaleString()}</td>
                 <td><span class="badge ${badgeClass}">${statusText}</span></td>
                 <td>
                     <div class="action-btns">
@@ -2251,6 +2511,7 @@ function viewInvoice(id) {
     const payments = DB.payments.filter(p => p.invoiceId === id);
     const docs = DB.documents.filter(d => d.invoiceId === id);
     const rate = inv.finalTotal > 0 ? ((inv.collected / inv.finalTotal) * 100) : 0;
+    const symbol = CURRENCY_SYMBOLS[inv.currency] || '';
 
     const docTypes = {
         collection_notice: 'إشعار تحصيل',
@@ -2260,14 +2521,21 @@ function viewInvoice(id) {
     };
 
     const content = `
-        <h2 class="modal-title" style="color:#60a5fa;"><i class="fas fa-file-invoice"></i> تفاصيل الفاتورة: ${inv.id}</h2>
+        <h2 class="modal-title" style="color:#60a5fa;">
+            <i class="fas fa-file-invoice"></i> تفاصيل الفاتورة: ${inv.id}
+            <span class="currency-badge currency-${inv.currency.toLowerCase()}">${symbol} ${inv.currency}</span>
+        </h2>
         
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-bottom:1.5rem;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem;">
             <div style="background:var(--bg-input);padding:1rem;border-radius:10px;">
                 <strong style="color:var(--text-gray);">العميل:</strong><br>${inv.clientName}
             </div>
             <div style="background:var(--bg-input);padding:1rem;border-radius:10px;">
                 <strong style="color:var(--text-gray);">التاريخ:</strong><br>${inv.date}
+            </div>
+            <div style="background:var(--bg-input);padding:1rem;border-radius:10px;">
+                <strong style="color:var(--text-gray);">العملة:</strong><br>
+                <span class="currency-badge currency-${inv.currency.toLowerCase()}">${symbol} ${CURRENCY_NAMES[inv.currency]}</span>
             </div>
             <div style="background:var(--bg-input);padding:1rem;border-radius:10px;">
                 <strong style="color:var(--text-gray);">الحالة:</strong><br>
@@ -2276,12 +2544,12 @@ function viewInvoice(id) {
         </div>
 
         <div class="summary-box">
-            <h4 style="margin-bottom:0.75rem;"><i class="fas fa-calculator"></i> الملخص المالي</h4>
-            <div class="summary-row"><span>إجمالي الفاتورة:</span><span>${inv.finalTotal.toFixed(2)} ج.م</span></div>
-            <div class="summary-row"><span>خصم ضريبي (${inv.taxDeductionRate}%):</span><span style="color:#ef4444;">-${inv.taxDeductionAmount.toFixed(2)} ج.م</span></div>
-            <div class="summary-row"><span>خصم عمالة (${inv.laborDeductionRate}%):</span><span style="color:#ef4444;">-${inv.laborDeductionAmount.toFixed(2)} ج.م</span></div>
-            <div class="summary-row"><span>المبلغ المحصل:</span><span style="color:#10b981;">${inv.collected.toFixed(2)} ج.م</span></div>
-            <div class="summary-row"><span>المتبقي:</span><span style="color:${inv.remaining>0?'#ef4444':'#10b981'};font-weight:bold;">${inv.remaining.toFixed(2)} ج.م</span></div>
+            <h4 style="margin-bottom:0.75rem;"><i class="fas fa-calculator"></i> الملخص المالي (${symbol})</h4>
+            <div class="summary-row"><span>إجمالي الفاتورة:</span><span>${symbol}${inv.finalTotal.toLocaleString()}</span></div>
+            <div class="summary-row"><span>خصم ضريبي (${inv.taxDeductionRate}%):</span><span style="color:#ef4444;">-${symbol}${inv.taxDeductionAmount.toLocaleString()}</span></div>
+            <div class="summary-row"><span>خصم عمالة (${inv.laborDeductionRate}%):</span><span style="color:#ef4444;">-${symbol}${inv.laborDeductionAmount.toLocaleString()}</span></div>
+            <div class="summary-row"><span>المبلغ المحصل:</span><span style="color:#10b981;">${symbol}${inv.collected.toLocaleString()}</span></div>
+            <div class="summary-row"><span>المتبقي:</span><span style="color:${inv.remaining>0?'#ef4444':'#10b981'};font-weight:bold;">${symbol}${inv.remaining.toLocaleString()}</span></div>
             <div style="margin-top:0.75rem;"><span>نسبة التحصيل: </span>
                 <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(rate,100)}%;">${rate.toFixed(1)}%</div></div>
             </div>
@@ -2294,7 +2562,7 @@ function viewInvoice(id) {
                     <thead><tr><th>#</th><th>الوصف</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead>
                     <tbody>
                         ${inv.items.map((it, i) => `
-                            <tr><td>${i+1}</td><td>${it.desc}</td><td>${it.qty}</td><td>${it.price.toFixed(2)}</td><td>${it.total.toFixed(2)}</td></tr>
+                            <tr><td>${i+1}</td><td>${it.desc}</td><td>${it.qty.toLocaleString()}</td><td>${symbol}${it.price.toLocaleString()}</td><td>${symbol}${it.total.toLocaleString()}</td></tr>
                         `).join('')}
                     </tbody>
                 </table>
@@ -2326,8 +2594,8 @@ function viewInvoice(id) {
                             ${payments.map(p => `
                                 <tr>
                                     <td>${p.date}</td>
-                                    <td style="color:#10b981;font-weight:bold;">+${p.amount.toFixed(2)} ج.م</td>
-                                    <td>${p.remainingAfter.toFixed(2)} ج.م</td>
+                                    <td style="color:#10b981;font-weight:bold;">+${symbol}${p.amount.toLocaleString()}</td>
+                                    <td>${symbol}${p.remainingAfter.toLocaleString()}</td>
                                     <td>${p.notes||'-'}</td>
                                 </tr>
                             `).join('')}
@@ -2358,8 +2626,10 @@ function openPayment(invoiceId) {
         return;
     }
 
+    const symbol = CURRENCY_SYMBOLS[inv.currency] || '';
+
     document.getElementById('payInvId').value = invoiceId;
-    document.getElementById('payDue').value = inv.remaining.toFixed(2) + ' ج.م';
+    document.getElementById('payDue').value = symbol + inv.remaining.toLocaleString();
     document.getElementById('payAmount').value = '';
     document.getElementById('payDate').valueAsDate = new Date();
     document.getElementById('payNotes').value = '';
@@ -2371,14 +2641,15 @@ function openPayment(invoiceId) {
 function updatePayPreview() {
     const amount = parseFloat(document.getElementById('payAmount').value) || 0;
     const inv = DB.invoices.find(i => i.id === document.getElementById('payInvId').value);
+    const symbol = CURRENCY_SYMBOLS[inv?.currency] || '';
     
     if (amount > 0 && inv) {
         document.getElementById('payPreview').style.display = 'block';
-        document.getElementById('payBefore').textContent = inv.remaining.toFixed(2) + ' ج.م';
-        document.getElementById('payAmtDisplay').textContent = '+' + amount.toFixed(2) + ' ج.م';
+        document.getElementById('payBefore').textContent = symbol + inv.remaining.toLocaleString();
+        document.getElementById('payAmtDisplay').textContent = '+' + symbol + amount.toLocaleString();
         
         const after = Math.max(0, inv.remaining - amount);
-        document.getElementById('payAfter').textContent = after.toFixed(2) + ' ج.م';
+        document.getElementById('payAfter').textContent = symbol + after.toLocaleString();
         
         const rate = ((inv.collected + amount) / inv.finalTotal) * 100;
         document.getElementById('payProgress').style.width = Math.min(rate, 100) + '%';
@@ -2405,7 +2676,8 @@ function savePayment(e) {
     if (!inv) return;
 
     if (amount > inv.remaining) {
-        showToast(`المبلغ يتجاوز المتبقي (${inv.remaining.toFixed(2)} ج.م)`, 'error');
+        const symbol = CURRENCY_SYMBOLS[inv.currency] || '';
+        showToast(`المبلغ يتجاوز المتبقي (${symbol}${inv.remaining.toLocaleString()})`, 'error');
         return;
     }
 
@@ -2434,7 +2706,8 @@ function savePayment(e) {
     closeModal('paymentModal');
     renderInvoices();
     refreshDashboard();
-    showToast(`تم تسجيل تحصيل قدره ${amount.toFixed(2)} ج.م ✓`);
+    const symbol = CURRENCY_SYMBOLS[inv.currency] || '';
+    showToast(`✅ تم تسجيل تحصيل قدره ${symbol}${amount.toLocaleString()}`);
 }
 
 // ==========================================
@@ -2474,7 +2747,7 @@ function saveDocument(e) {
         DB.documents.push(doc);
         saveDB();
         closeModal('docModal');
-        showToast('تم رفع المستند بنجاح ✓');
+        showToast('✅ تم رفع المستند بنجاح');
     };
     reader.readAsDataURL(file);
 }
@@ -2487,7 +2760,8 @@ function closeInv(id) {
     if (!inv) return;
 
     if (inv.remaining > 0.01) {
-        if (!confirm(`هذه الفاتورة لم تُحصل بالكامل (${inv.remaining.toFixed(2)} ج.م متبقي). هل تريد الإغلاق؟`)) {
+        const symbol = CURRENCY_SYMBOLS[inv.currency] || '';
+        if (!confirm(`هذه الفاتورة لم تُحصل بالكامل (${symbol}${inv.remaining.toLocaleString()} متبقي). هل تريد الإغلاق؟`)) {
             return;
         }
     }
@@ -2505,6 +2779,8 @@ function printInv(id) {
     const inv = DB.invoices.find(i => i.id === id);
     if (!inv) return;
 
+    const symbol = CURRENCY_SYMBOLS[inv.currency] || '';
+
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
         <!DOCTYPE html><html dir="rtl"><head><title>فاتورة ${inv.id}</title>
@@ -2515,19 +2791,20 @@ function printInv(id) {
             th,td{border:1px solid #ddd;padding:12px;text-align:right;}
             th{background:#2563eb;color:white;}
             .total{text-align:left;font-size:1.5em;font-weight:bold;color:#2563eb;margin-top:20px;}
+            .currency{background:#10b981;color:white;padding:0.25rem 0.75rem;border-radius:6px;font-size:0.9em;}
         </style></head><body>
         <div class="header">
             <h1>Axentro Invoice System</h1>
-            <h2>فاتورة رقم: ${inv.id}</h2>
+            <h2>فاتورة رقم: ${inv.id} <span class="currency">${symbol} ${inv.currency}</span></h2>
         </div>
-        <p><strong>العميل:</strong> ${inv.clientName} | <strong>التاريخ:</strong> ${inv.date}</p>
+        <p><strong>العميل:</strong> ${inv.clientName} | <strong>التاريخ:</strong> ${inv.date} | <strong>العملة:</strong> ${symbol} ${CURRENCY_NAMES[inv.currency]}</p>
         <table>
             <thead><tr><th>#</th><th>الوصف</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr></thead>
             <tbody>
-                ${inv.items.map((it,i)=>`<tr><td>${i+1}</td><td>${it.desc}</td><td>${it.qty}</td><td>${it.price.toFixed(2)}</td><td>${it.total.toFixed(2)}</td></tr>`).join('')}
+                ${inv.items.map((it,i)=>`<tr><td>${i+1}</td><td>${it.desc}</td><td>${it.qty}</td><td>${symbol}${it.price.toLocaleString()}</td><td>${symbol}${it.total.toLocaleString()}</td></tr>`).join('')}
             </tbody>
         </table>
-        <div class="total">الإجمالي النهائي: ${inv.finalTotal.toFixed(2)} ج.م</div>
+        <div class="total">الإجمالي النهائي: ${symbol}${inv.finalTotal.toLocaleString()}</div>
         <p style="text-align:center;color:#666;margin-top:40px;">© 2024 Axentro – All Rights Reserved | By Axentro Team</p>
         </body></html>
     `);
@@ -2539,9 +2816,10 @@ function printInv(id) {
 // EXPORT
 // ==========================================
 function exportData() {
-    let csv = 'رقم الفاتورة,العميل,التاريخ,الإجمالي,المحصل,المتبقي,الحالة\n';
+    let csv = 'رقم الفاتورة,العملة,العميل,التاريخ,الإجمالي,المحصل,المتبقي,الحالة\n';
     DB.invoices.forEach(inv => {
-        csv += `${inv.id},${inv.clientName},${inv.date},${inv.finalTotal},${inv.collected},${inv.remaining},${inv.status}\n`;
+        const symbol = CURRENCY_SYMBOLS[inv.currency] || '';
+        csv += `${inv.id},${inv.currency},${inv.clientName},${inv.date},${symbol}${inv.finalTotal},${symbol}${inv.collected},${symbol}${inv.remaining},${inv.status}\n`;
     });
 
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
@@ -2549,7 +2827,7 @@ function exportData() {
     link.href = URL.createObjectURL(blob);
     link.download = 'Axentro_Invoices_' + new Date().toISOString().split('T')[0] + '.csv';
     link.click();
-    showToast('تم تصدير البيانات ✓');
+    showToast('✅ تم تصدير البيانات');
 }
 
 // ==========================================
@@ -2571,20 +2849,20 @@ function refreshDashboard() {
     const tbody = document.getElementById('recentTable');
 
     if (recent.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="fas fa-inbox"></i><h3>لا توجد فواتير</h3><p>ابدأ بإنشاء فاتورتك الأولى!</p></div></td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="fas fa-inbox"></i><h3>لا توجد فواتير</h3><p>ابدأ بإنشاء فاتورتك الأولى!</p></div></td></tr>`;
         return;
     }
 
     tbody.innerHTML = recent.map(inv => {
+        const symbol = CURRENCY_SYMBOLS[inv.currency] || '';
         const badge = inv.status === 'active' ? 'badge-success' : 'badge-info';
         const txt = inv.status === 'active' ? 'نشطة' : 'مغلقة';
         return `<tr onclick="viewInvoice('${inv.id}')" style="cursor:pointer;">
             <td><strong>${inv.id}</strong></td>
+            <td><span class="currency-badge currency-${inv.currency.toLowerCase()}">${symbol} ${inv.currency}</span></td>
             <td>${inv.clientName}</td>
             <td>${inv.date}</td>
-            <td>${inv.finalTotal.toFixed(2)} ج.م</td>
-            <td style="color:#10b981;">${inv.collected.toFixed(2)} ج.م</td>
-            <td style="color:#ef4444;">${inv.remaining.toFixed(2)} ج.م</td>
+            <td style="color:var(--primary);">${symbol}${inv.finalTotal.toLocaleString()}</td>
             <td><span class="badge ${badge}">${txt}</span></td>
         </tr>`;
     }).join('');
@@ -2660,7 +2938,7 @@ function refreshReports() {
         data: {
             labels: sortedClients.map(c => c[0]),
             datasets: [{
-                label: 'إجمالي التعاملات (ج.م)',
+                label: 'إجمالي التعاملات',
                 data: sortedClients.map(c => c[1]),
                 backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'],
                 borderRadius: 8
@@ -2685,8 +2963,8 @@ document.addEventListener('DOMContentLoaded', function() {
     refreshDashboard();
     updateClientSelects();
     
-    console.log('%c🚀 Axentro Invoice System with OCR Loaded!', 'color:#2563eb;font-size:18px;font-weight:bold;');
-    console.log('%c✨ Supports Egyptian Tax Invoices (ETA)', 'color:#10b981;font-size:14px;');
+    console.log('%c🚀 Axentro Invoice System v2.0 with Improved OCR Loaded!', 'color:#2563eb;font-size:18px;font-weight:bold;');
+    console.log('%c✨ Features: Multi-Currency Support | Enhanced Item Extraction | Better Accuracy', 'color:#10b981;font-size:14px;');
 });
 
 // Keyboard shortcuts
