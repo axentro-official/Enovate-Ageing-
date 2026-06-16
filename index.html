@@ -1,0 +1,2906 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Axentro Invoice Management System</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Tesseract.js for OCR -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1e40af;
+            --primary-light: #3b82f6;
+            --secondary-color: #10b981;
+            --accent-color: #f59e0b;
+            --danger-color: #ef4444;
+            --warning-color: #f97316;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: #475569;
+            --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.2);
+            --gradient-primary: linear-gradient(135deg, #2563eb 0%, #10b981 100%);
+            --gradient-dark: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', 'Tajawal', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(37, 99, 235, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(245, 158, 11, 0.05) 0%, transparent 50%);
+            z-index: -1;
+            animation: bgPulse 15s ease-in-out infinite;
+        }
+
+        @keyframes bgPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Navigation */
+        .navbar {
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            transition: var(--transition-smooth);
+        }
+
+        .navbar.scrolled {
+            box-shadow: var(--shadow-lg);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: logoGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes logoGlow {
+            0%, 100% { filter: drop-shadow(0 0 10px rgba(37, 99, 235, 0.5)); }
+            50% { filter: drop-shadow(0 0 20px rgba(37, 99, 235, 0.8)); }
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 0.5rem;
+            list-style: none;
+        }
+
+        .nav-link {
+            padding: 0.75rem 1.25rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: var(--transition-smooth);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-primary);
+            transition: var(--transition-smooth);
+            z-index: -1;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .nav-link:hover::before, .nav-link.active::before {
+            left: 0;
+        }
+
+        /* Mobile Menu */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: 80px;
+            min-height: calc(100vh - 200px);
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Section Styles */
+        .section {
+            display: none;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+            transform: scaleX(0);
+            transition: var(--transition-smooth);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .card-title i {
+            color: var(--primary-light);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin-bottom: 1rem;
+            background: var(--gradient-primary);
+            animation: iconFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.875rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:active::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.6);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.6);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.875rem 1.25rem;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-family: 'Cairo', sans-serif;
+            font-size: 1rem;
+            transition: var(--transition-smooth);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+            transform: scale(1.02);
+        }
+
+        .form-control::placeholder {
+            color: var(--text-secondary);
+        }
+
+        select.form-control {
+            cursor: pointer;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-secondary);
+        }
+
+        thead {
+            background: var(--gradient-primary);
+        }
+
+        th {
+            padding: 1.25rem;
+            text-align: right;
+            font-weight: 700;
+            color: white;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 1.25rem;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        tbody tr {
+            transition: var(--transition-smooth);
+        }
+
+        tbody tr:hover {
+            background: var(--bg-card);
+            transform: scale(1.01);
+        }
+
+        /* Status Badges */
+        .badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-active {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+        }
+
+        .badge-closed {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            border: 1px solid #3b82f6;
+        }
+
+        .badge-overdue {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* File Upload */
+        .upload-area {
+            border: 3px dashed var(--border-color);
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            transition: var(--transition-smooth);
+            cursor: pointer;
+            background: var(--bg-secondary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            border-color: var(--primary-color);
+            background: rgba(37, 99, 235, 0.1);
+            transform: scale(1.02);
+        }
+
+        .upload-area i {
+            font-size: 4rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .upload-area p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border-radius: 25px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 2.5rem;
+            position: relative;
+            animation: slideUp 0.4s ease-out;
+            border: 1px solid var(--border-color);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1.5rem;
+            left: 1.5rem;
+            background: var(--bg-secondary);
+            border: none;
+            color: var(--text-primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.25rem;
+            transition: var(--transition-smooth);
+        }
+
+        .modal-close:hover {
+            background: var(--danger-color);
+            transform: rotate(90deg);
+        }
+
+        /* Progress Bar */
+        .progress-bar-container {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            height: 25px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--gradient-primary);
+            border-radius: 10px;
+            transition: width 1s ease-in-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent
+            );
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: 700;
+            color: white;
+            font-size: 0.85rem;
+            z-index: 1;
+        }
+
+        /* Filter Section */
+        .filter-section {
+            background: var(--bg-secondary);
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            align-items: end;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+
+        /* Document Gallery */
+        .document-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .document-item {
+            background: var(--bg-secondary);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 2px solid var(--border-color);
+            transition: var(--transition-smooth);
+            cursor: pointer;
+        }
+
+        .document-item:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .document-item i {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 0.75rem;
+        }
+
+        /* Charts Container */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .chart-container {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 3rem 2rem 2rem;
+            margin-top: 4rem;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .footer-text {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .footer-team {
+            color: var(--primary-light);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-qr {
+            margin-top: 1.5rem;
+        }
+
+        .footer-qr img {
+            width: 120px;
+            height: 120px;
+            border-radius: 15px;
+            border: 3px solid var(--border-color);
+            transition: var(--transition-smooth);
+        }
+
+        .footer-qr img:hover {
+            transform: scale(1.1);
+            border-color: var(--primary-color);
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            z-index: 3000;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            border-radius: 15px;
+            padding: 1rem 1.5rem;
+            border-right: 4px solid var(--secondary-color);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            animation: slideInRight 0.4s ease-out;
+            min-width: 300px;
+        }
+
+        .toast.error {
+            border-right-color: var(--danger-color);
+        }
+
+        .toast.warning {
+            border-right-color: var(--warning-color);
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(-100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: var(--bg-secondary);
+                flex-direction: column;
+                padding: 1rem;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .filter-section {
+                grid-template-columns: 1fr;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .modal {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+        }
+
+        /* Invoice Items Table */
+        .invoice-items-table {
+            width: 100%;
+            margin: 1.5rem 0;
+        }
+
+        .invoice-items-table input {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .invoice-items-table input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        /* Summary Box */
+        .summary-box {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%);
+            border: 2px solid var(--primary-color);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px dashed var(--border-color);
+            font-size: 1.1rem;
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: var(--primary-light);
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 3px solid var(--primary-color);
+        }
+
+        /* Action Buttons Group */
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: var(--transition-smooth);
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .action-btn-view { background: var(--primary-color); }
+        .action-btn-edit { background: var(--warning-color); }
+        .action-btn-payment { background: var(--secondary-color); }
+        .action-btn-doc { background: #8b5cf6; }
+        .action-btn-close { background: #6366f1; }
+        .action-btn-print { background: #ec4899; }
+
+        /* OCR Processing Indicator */
+        .ocr-processing {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .ocr-processing.active {
+            display: block;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 5rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-family: 'Cairo', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 10px 10px 0 0;
+            transition: var(--transition-smooth);
+            position: relative;
+        }
+
+        .tab::after {
+            content: '';
+            position: absolute;
+            bottom: -0.5rem;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-primary);
+            transform: scaleX(0);
+            transition: var(--transition-smooth);
+        }
+
+        .tab:hover, .tab.active {
+            color: var(--primary-color);
+        }
+
+        .tab.active::after {
+            transform: scaleX(1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-file-invoice-dollar"></i> Axentro
+            </div>
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <ul class="nav-links" id="navLinks">
+                <li><a class="nav-link active" data-section="dashboard"><i class="fas fa-home"></i> الرئيسية</a></li>
+                <li><a class="nav-link" data-section="clients"><i class="fas fa-users"></i> العملاء</a></li>
+                <li><a class="nav-link" data-section="create-invoice"><i class="fas fa-plus-circle"></i> فاتورة جديدة</a></li>
+                <li><a class="nav-link" data-section="invoices-list"><i class="fas fa-list"></i> الفواتير</a></li>
+                <li><a class="nav-link" data-section="reports"><i class="fas fa-chart-line"></i> التقارير</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="section active">
+                <h1 style="font-size: 2.5rem; margin-bottom: 2rem; text-align: center;">
+                    <i class="fas fa-tachometer-alt" style="color: var(--primary-color);"></i>
+                    لوحة التحكم الرئيسية
+                </h1>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                            <i class="fas fa-file-invoice"></i>
+                        </div>
+                        <div class="stat-value" id="totalInvoices">0</div>
+                        <div class="stat-label">إجمالي الفواتير</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-value" id="activeInvoices">0</div>
+                        <div class="stat-label">الفواتير النشطة</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <div class="stat-value" id="collectedAmount">0</div>
+                        <div class="stat-label">المبالغ المحصلة (ج.م)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-value" id="remainingAmount">0</div>
+                        <div class="stat-label">المبالغ المتبقية (ج.م)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-value" id="totalClients">0</div>
+                        <div class="stat-label">عدد العملاء</div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <button class="btn btn-primary" onclick="showSection('create-invoice')">
+                        <i class="fas fa-plus"></i> إضافة فاتورة جديدة
+                    </button>
+                    <button class="btn btn-success" onclick="showSection('clients')">
+                        <i class="fas fa-user-plus"></i> إضافة عميل
+                    </button>
+                    <button class="btn btn-warning" onclick="showSection('invoices-list')">
+                        <i class="fas fa-search"></i> عرض جميع الفواتير
+                    </button>
+                    <button class="btn btn-outline" style="border-color: #8b5cf6; color: #8b5cf6;" onclick="showSection('reports')">
+                        <i class="fas fa-chart-bar"></i> التقارير
+                    </button>
+                </div>
+
+                <!-- Recent Invoices -->
+                <div class="card">
+                    <h2 class="card-title">
+                        <i class="fas fa-clock"></i>
+                        أحدث الفواتير
+                    </h2>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>رقم الفاتورة</th>
+                                    <th>العميل</th>
+                                    <th>التاريخ</th>
+                                    <th>الإجمالي</th>
+                                    <th>المحصل</th>
+                                    <th>المتبقي</th>
+                                    <th>الحالة</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentInvoicesTable">
+                                <tr>
+                                    <td colspan="7" class="empty-state">
+                                        <i class="fas fa-inbox"></i>
+                                        <h3>لا توجد فواتير بعد</h3>
+                                        <p>ابدأ بإنشاء فاتورتك الأولى!</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Clients Management Section -->
+            <section id="clients" class="section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                    <h1 style="font-size: 2.5rem;">
+                        <i class="fas fa-users" style="color: var(--primary-color);"></i>
+                        إدارة العملاء
+                    </h1>
+                    <button class="btn btn-primary" onclick="openModal('clientModal')">
+                        <i class="fas fa-user-plus"></i> إضافة عميل جديد
+                    </button>
+                </div>
+
+                <!-- Search & Filter -->
+                <div class="filter-section">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <input type="text" class="form-control" id="clientSearch" placeholder="🔍 بحث بالاسم أو الرقم الضريبي..." oninput="filterClients()">
+                    </div>
+                </div>
+
+                <!-- Clients Table -->
+                <div class="card">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>اسم العميل</th>
+                                    <th>الرقم الضريبي</th>
+                                    <th>الهاتف</th>
+                                    <th>البريد الإلكتروني</th>
+                                    <th>عدد الفواتير</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clientsTableBody">
+                                <tr>
+                                    <td colspan="7" class="empty-state">
+                                        <i class="fas fa-user-slash"></i>
+                                        <h3>لا يوجد عملاء مسجلين</h3>
+                                        <p>قم بإضافة عميلك الأول!</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Create Invoice Section -->
+            <section id="create-invoice" class="section">
+                <h1 style="font-size: 2.5rem; margin-bottom: 2rem;">
+                    <i class="fas fa-file-invoice-dollar" style="color: var(--primary-color);"></i>
+                    إنشاء فاتورة جديدة
+                </h1>
+
+                <div class="card">
+                    <h2 class="card-title"><i class="fas fa-info-circle"></i> البيانات الأساسية</h2>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+                        <div class="form-group">
+                            <label class="form-label">رقم الفاتورة الداخلي (Internal ID)</label>
+                            <input type="text" class="form-control" id="invoiceId" readonly style="background: var(--bg-primary); font-weight: bold; color: var(--primary-light);">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">تاريخ الفاتورة *</label>
+                            <input type="date" class="form-control" id="invoiceDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">اختيار العميل *</label>
+                            <select class="form-control" id="clientSelect" required>
+                                <option value="">-- اختر العميل --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Upload Invoice Image with OCR -->
+                    <div class="form-group" style="margin-top: 2rem;">
+                        <label class="form-label">
+                            <i class="fas fa-camera"></i> رفع صورة الفاتورة الأصلية (سيتم قراءتها تلقائياً via OCR)
+                        </label>
+                        <div class="upload-area" id="invoiceUploadArea" onclick="document.getElementById('invoiceImageInput').click()">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>اضغط هنا أو اسحب صورة الفاتورة لرفعها</p>
+                            <p style="font-size: 0.9rem; margin-top: 0.5rem;">PNG, JPG, PDF (حد أقصى 10MB)</p>
+                        </div>
+                        <input type="file" id="invoiceImageInput" accept="image/*,.pdf" style="display: none;" onchange="handleInvoiceUpload(event)">
+                        
+                        <!-- OCR Processing -->
+                        <div class="ocr-processing" id="ocrProcessing">
+                            <div class="spinner"></div>
+                            <p style="margin-top: 1rem; color: var(--primary-color);"><i class="fas fa-magic"></i> جاري قراءة الفاتورة تلقائياً...</p>
+                            <div class="progress-bar-container" style="margin-top: 1rem; max-width: 400px; margin-left: auto; margin-right: auto;">
+                                <div class="progress-bar" id="ocrProgress" style="width: 0%;">
+                                    <span class="progress-text" id="ocrProgressText">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Invoice Items -->
+                <div class="card">
+                    <h2 class="card-title">
+                        <i class="fas fa-list-alt"></i>
+                        بنود الفاتورة
+                        <button class="btn btn-success" style="margin-right: auto; padding: 0.5rem 1rem; font-size: 0.9rem;" onclick="addInvoiceItem()">
+                            <i class="fas fa-plus"></i> إضافة بند
+                        </button>
+                    </h2>
+                    
+                    <div class="table-container">
+                        <table class="invoice-items-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 5%;">#</th>
+                                    <th style="width: 40%;">الوصف (Description)</th>
+                                    <th style="width: 15%;">الكمية</th>
+                                    <th style="width: 20%;">سعر الوحدة (ج.م)</th>
+                                    <th style="width: 15%;">الإجمالي</th>
+                                    <th style="width: 5%;">حذف</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoiceItemsBody">
+                                <!-- Items will be added dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Deductions & Summary -->
+                    <div class="summary-box">
+                        <h3 style="margin-bottom: 1.5rem; color: var(--primary-light);">
+                            <i class="fas fa-calculator"></i> حساب الضرائب والخصومات
+                        </h3>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label">ضريبة القيمة المضافة (VAT %)</label>
+                                <input type="number" class="form-control" id="vatRate" value="14" min="0" max="100" onchange="calculateTotals()">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label">خصم ضريبي (%)</label>
+                                <input type="number" class="form-control" id="taxDeduction" value="0" min="0" max="100" onchange="calculateTotals()">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label class="form-label">خصم شهادات العمالة/Tamkeen (%)</label>
+                                <input type="number" class="form-control" id="laborDeduction" value="0" min="0" max="100" onchange="calculateTotals()">
+                            </div>
+                        </div>
+
+                        <div class="summary-row">
+                            <span>الإجمالي الفرعي (Subtotal):</span>
+                            <span id="subtotal">0.00 ج.م</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>ضريبة القيمة المضافة (VAT):</span>
+                            <span id="vatAmount">0.00 ج.م</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>الإجمالي بعد الضريبة:</span>
+                            <span id="totalAfterVat">0.00 ج.م</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>خصم ضريبي:</span>
+                            <span id="taxDeductionAmount" style="color: var(--danger-color);">-0.00 ج.م</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>خصم العمالة:</span>
+                            <span id="laborDeductionAmount" style="color: var(--danger-color);">-0.00 ج.م</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>الإجمالي النهائي:</span>
+                            <span id="finalTotal">0.00 ج.م</span>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem; flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="saveInvoice()" style="font-size: 1.1rem; padding: 1rem 3rem;">
+                            <i class="fas fa-save"></i> حفظ الفاتورة
+                        </button>
+                        <button class="btn btn-outline" onclick="resetInvoiceForm()" style="border-color: var(--danger-color); color: var(--danger-color);">
+                            <i class="fas fa-redo"></i> إعادة تعيين
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Invoices List Section -->
+            <section id="invoices-list" class="section">
+                <h1 style="font-size: 2.5rem; margin-bottom: 2rem;">
+                    <i class="fas fa-folder-open" style="color: var(--primary-color);"></i>
+                    جميع الفواتير
+                </h1>
+
+                <!-- Filters -->
+                <div class="filter-section">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <input type="text" class="form-control" id="invoiceSearch" placeholder="🔍 بحث برقم الفاتورة أو اسم العميل..." oninput="filterInvoices()">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <select class="form-control" id="filterClient" onchange="filterInvoices()">
+                            <option value="">كل العملاء</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <select class="form-control" id="filterStatus" onchange="filterInvoices()">
+                            <option value="">كل الحالات</option>
+                            <option value="active">نشطة</option>
+                            <option value="closed">مغلقة</option>
+                            <option value="overdue">متأخرة</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <input type="date" class="form-control" id="filterDateFrom" onchange="filterInvoices()">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <input type="date" class="form-control" id="filterDateTo" onchange="filterInvoices()">
+                    </div>
+                </div>
+
+                <!-- Export Buttons -->
+                <div class="quick-actions" style="justify-content: flex-end;">
+                    <button class="btn btn-success" onclick="exportToExcel()">
+                        <i class="fas fa-file-excel"></i> تصدير Excel
+                    </button>
+                    <button class="btn btn-warning" onclick="exportToPDF()">
+                        <i class="fas fa-file-pdf"></i> تصدير PDF
+                    </button>
+                </div>
+
+                <!-- Invoices Table -->
+                <div class="card">
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>رقم الفاتورة</th>
+                                    <th>العميل</th>
+                                    <th>التاريخ</th>
+                                    <th>الإجمالي</th>
+                                    <th>المحصل</th>
+                                    <th>المتبقي</th>
+                                    <th>نسبة التحصيل</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoicesTableBody">
+                                <tr>
+                                    <td colspan="9" class="empty-state">
+                                        <i class="fas fa-inbox"></i>
+                                        <h3>لا توجد فواتير</h3>
+                                        <p>ابدأ بإنشاء فاتورتك الأولى!</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reports Section -->
+            <section id="reports" class="section">
+                <h1 style="font-size: 2.5rem; margin-bottom: 2rem;">
+                    <i class="fas fa-chart-line" style="color: var(--primary-color);"></i>
+                    التقارير والإحصائيات
+                </h1>
+
+                <!-- KPI Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="stat-value" id="reportTotalSales">0</div>
+                        <div class="stat-label">إجمالي المبيعات (ج.م)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                        <div class="stat-value" id="reportCollectionRate">0%</div>
+                        <div class="stat-label">نسبة التحصيل</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        <div class="stat-value" id="reportAvgInvoice">0</div>
+                        <div class="stat-label">متوسط قيمة الفاتورة</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-value" id="reportOverdueCount">0</div>
+                        <div class="stat-label">فواتير متأخرة</div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3 style="margin-bottom: 1rem; color: var(--text-primary);"><i class="fas fa-chart-line"></i> تطور التحصيل شهرياً</h3>
+                        <canvas id="collectionTrendChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3 style="margin-bottom: 1rem; color: var(--text-primary);"><i class="fas fa-chart-pie"></i> توزيع الفواتير حسب الحالة</h3>
+                        <canvas id="statusDistributionChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3 style="margin-bottom: 1rem; color: var(--text-primary);"><i class="fas fa-chart-bar"></i> أعلى 5 عملاء</h3>
+                        <canvas id="topClientsChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Client Modal -->
+    <div class="modal-overlay" id="clientModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal('clientModal')">&times;</button>
+            <h2 style="margin-bottom: 2rem; font-size: 1.8rem; color: var(--primary-light);">
+                <i class="fas fa-user-plus"></i> إضافة عميل جديد
+            </h2>
+            <form id="clientForm" onsubmit="saveClient(event)">
+                <div class="form-group">
+                    <label class="form-label">اسم العميل *</label>
+                    <input type="text" class="form-control" id="clientName" required placeholder="أدخل اسم العميل">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">رقم التسجيل الضريبي (Tax ID)</label>
+                    <input type="text" class="form-control" id="clientTaxId" placeholder="أدخل الرقم الضريبي">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">العنوان</label>
+                    <input type="text" class="form-control" id="clientAddress" placeholder="أدخل العنوان">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">رقم الهاتف</label>
+                    <input type="tel" class="form-control" id="clientPhone" placeholder="أدخل رقم الهاتف">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">البريد الإلكتروني</label>
+                    <input type="email" class="form-control" id="clientEmail" placeholder="أدخل البريد الإلكتروني">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">نوع النشاط التجاري</label>
+                    <input type="text" class="form-control" id="clientBusinessType" placeholder="أدخل نوع النشاط">
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> حفظ العميل
+                    </button>
+                    <button type="button" class="btn btn-outline" onclick="closeModal('clientModal')" style="border-color: var(--danger-color); color: var(--danger-color);">
+                        إلغاء
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Invoice Details Modal -->
+    <div class="modal-overlay" id="invoiceDetailsModal">
+        <div class="modal" style="max-width: 1000px;">
+            <button class="modal-close" onclick="closeModal('invoiceDetailsModal')">&times;</button>
+            <div id="invoiceDetailsContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal-overlay" id="paymentModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal('paymentModal')">&times;</button>
+            <h2 style="margin-bottom: 2rem; font-size: 1.8rem; color: var(--secondary-color);">
+                <i class="fas fa-money-check-alt"></i> تسجيل عملية تحصيل
+            </h2>
+            <form id="paymentForm" onsubmit="savePayment(event)">
+                <div class="form-group">
+                    <label class="form-label">رقم الفاتورة</label>
+                    <input type="text" class="form-control" id="paymentInvoiceId" readonly style="background: var(--bg-primary);">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">المبلغ المستحق</label>
+                    <input type="text" class="form-control" id="paymentDueAmount" readonly style="background: var(--bg-primary); color: var(--warning-color); font-weight: bold;">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">المبلغ المحصل *</label>
+                    <input type="number" class="form-control" id="paymentAmount" required step="0.01" placeholder="أدخل المبلغ المحصل">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">تاريخ التحصيل</label>
+                    <input type="date" class="form-control" id="paymentDate" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-paperclip"></i> رفع إشعار التحصيل
+                    </label>
+                    <div class="upload-area" onclick="document.getElementById('paymentNoticeInput').click()">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>اضغط لرفع إشعار التحصيل</p>
+                    </div>
+                    <input type="file" id="paymentNoticeInput" accept="image/*,.pdf" style="display: none;">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">ملاحظات</label>
+                    <textarea class="form-control" id="paymentNotes" placeholder="أي ملاحظات إضافية..."></textarea>
+                </div>
+                
+                <!-- Comparison Box -->
+                <div class="summary-box" id="paymentComparison" style="display: none;">
+                    <h4 style="margin-bottom: 1rem;"><i class="fas fa-balance-scale"></i> المقارنة التلقائية</h4>
+                    <div class="summary-row">
+                        <span>قبل التحصيل:</span>
+                        <span id="beforePayment">0 ج.م</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>مبلغ التحصيل:</span>
+                        <span id="paymentAmountDisplay" style="color: var(--secondary-color);">+0 ج.م</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>بعد التحصيل:</span>
+                        <span id="afterPayment" style="color: var(--primary-light); font-weight: bold;">0 ج.م</span>
+                    </div>
+                    <div style="margin-top: 1rem;">
+                        <span>نسبة التحصيل: </span>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" id="paymentProgress" style="width: 0%;">
+                                <span class="progress-text" id="paymentProgressText">0%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> حفظ التحصيل
+                    </button>
+                    <button type="button" class="btn btn-outline" onclick="closeModal('paymentModal')" style="border-color: var(--danger-color); color: var(--danger-color);">
+                        إلغاء
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Document Upload Modal -->
+    <div class="modal-overlay" id="documentModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal('documentModal')">&times;</button>
+            <h2 style="margin-bottom: 2rem; font-size: 1.8rem; color: #8b5cf6;">
+                <i class="fas fa-file-upload"></i> رفع مستند
+            </h2>
+            <form id="documentForm" onsubmit="saveDocument(event)">
+                <div class="form-group">
+                    <label class="form-label">رقم الفاتورة</label>
+                    <input type="text" class="form-control" id="docInvoiceId" readonly style="background: var(--bg-primary);">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">نوع المستند *</label>
+                    <select class="form-control" id="docType" required>
+                        <option value="">-- اختر نوع المستند --</option>
+                        <option value="collection_notice">إشعار تحصيل</option>
+                        <option value="tax_deduction">إشعار خصم الضرائب</option>
+                        <option value="labor_certificate">شهادة عمالة/Tamkeen</option>
+                        <option value="other">مستند آخر</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">رفع المستند *</label>
+                    <div class="upload-area" onclick="document.getElementById('docFileInput').click()">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>اضغط لرفع المستند (صورة أو PDF)</p>
+                    </div>
+                    <input type="file" id="docFileInput" accept="image/*,.pdf" style="display: none;" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">وصف المستند</label>
+                    <textarea class="form-control" id="docDescription" placeholder="وصف اختياري للمستند..."></textarea>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
+                    <button type="submit" class="btn btn-primary" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                        <i class="fas fa-upload"></i> رفع المستند
+                    </button>
+                    <button type="button" class="btn btn-outline" onclick="closeModal('documentModal')" style="border-color: var(--danger-color); color: var(--danger-color);">
+                        إلغاء
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p class="footer-text">© 2024 Axentro – All Rights Reserved</p>
+            <p class="footer-team">By Axentro Team</p>
+            <div class="footer-qr">
+                <a href="https://axentro-official.github.io/axentro-website/links.html" target="_blank">
+                    <img src="qr.png" alt="QR Code" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%23334155%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 font-size=%2212%22 fill=%22white%22 text-anchor=%22middle%22>QR Code</text></svg>'">
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // ==================== DATA STORAGE (LocalStorage as Database) ====================
+        let db = {
+            clients: JSON.parse(localStorage.getItem('axentro_clients')) || [],
+            invoices: JSON.parse(localStorage.getItem('axentro_invoices')) || [],
+            payments: JSON.parse(localStorage.getItem('axentro_payments')) || [],
+            documents: JSON.parse(localStorage.getItem('axentro_documents')) || []
+        };
+
+        // Save to localStorage
+        function saveDB() {
+            localStorage.setItem('axentro_clients', JSON.stringify(db.clients));
+            localStorage.setItem('axentro_invoices', JSON.stringify(db.invoices));
+            localStorage.setItem('axentro_payments', JSON.stringify(db.payments));
+            localStorage.setItem('axentro_documents', JSON.stringify(db.documents));
+        }
+
+        // Generate unique ID
+        function generateId(prefix = 'INV') {
+            const timestamp = Date.now().toString(36);
+            const random = Math.random().toString(36).substr(2, 5).toUpperCase();
+            return `${prefix}-${timestamp}-${random}`;
+        }
+
+        // ==================== NAVIGATION ====================
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Update nav links
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.dataset.section === sectionId) {
+                    link.classList.add('active');
+                }
+            });
+
+            // Close mobile menu
+            document.getElementById('navLinks').classList.remove('active');
+
+            // Refresh data based on section
+            if (sectionId === 'dashboard') refreshDashboard();
+            if (sectionId === 'clients') refreshClients();
+            if (sectionId === 'invoices-list') refreshInvoices();
+            if (sectionId === 'reports') refreshReports();
+            if (sectionId === 'create-invoice') initCreateInvoice();
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Nav link click handlers
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                showSection(this.dataset.section);
+            });
+        });
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            document.getElementById('navLinks').classList.toggle('active');
+        }
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // ==================== MODAL FUNCTIONS ====================
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Close modal on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+        });
+
+        // ==================== TOAST NOTIFICATIONS ====================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icon = type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'exclamation-triangle';
+            toast.innerHTML = `
+                <i class="fas fa-${icon}" style="font-size: 1.5rem; color: ${type === 'success' ? 'var(--secondary-color)' : type === 'error' ? 'var(--danger-color)' : 'var(--warning-color)'};"></i>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideInRight 0.4s ease-out reverse';
+                setTimeout(() => toast.remove(), 400);
+            }, 4000);
+        }
+
+        // ==================== CLIENTS MANAGEMENT ====================
+        function saveClient(e) {
+            e.preventDefault();
+            
+            const client = {
+                id: generateId('CLI'),
+                name: document.getElementById('clientName').value.trim(),
+                taxId: document.getElementById('clientTaxId').value.trim(),
+                address: document.getElementById('clientAddress').value.trim(),
+                phone: document.getElementById('clientPhone').value.trim(),
+                email: document.getElementById('clientEmail').value.trim(),
+                businessType: document.getElementById('clientBusinessType').value.trim(),
+                createdAt: new Date().toISOString(),
+                invoiceCount: 0
+            };
+
+            if (!client.name) {
+                showToast('يرجى إدخال اسم العميل', 'error');
+                return;
+            }
+
+            db.clients.push(client);
+            saveDB();
+            
+            closeModal('clientModal');
+            document.getElementById('clientForm').reset();
+            refreshClients();
+            updateClientSelects();
+            showToast('تم حفظ العميل بنجاح ✓');
+        }
+
+        function refreshClients() {
+            const tbody = document.getElementById('clientsTableBody');
+            const searchTerm = document.getElementById('clientSearch').value.toLowerCase();
+            
+            let filteredClients = db.clients.filter(client => 
+                client.name.toLowerCase().includes(searchTerm) ||
+                client.taxId.toLowerCase().includes(searchTerm)
+            );
+
+            if (filteredClients.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <i class="fas fa-user-slash"></i>
+                            <h3>لا يوجد عملاء</h3>
+                            <p>قم بإضافة عميلك الأول!</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filteredClients.map((client, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td><strong>${client.name}</strong></td>
+                    <td>${client.taxId || '-'}</td>
+                    <td>${client.phone || '-'}</td>
+                    <td>${client.email || '-'}</td>
+                    <td><span class="badge badge-active">${db.invoices.filter(inv => inv.clientId === client.id).length}</span></td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn action-btn-edit" onclick="editClient('${client.id}')" title="تعديل">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn action-btn-danger" onclick="deleteClient('${client.id}')" title="حذف" style="background: var(--danger-color);">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+
+            document.getElementById('totalClients').textContent = db.clients.length;
+        }
+
+        function filterClients() {
+            refreshClients();
+        }
+
+        function deleteClient(clientId) {
+            if (confirm('هل أنت متأكد من حذف هذا العميل؟')) {
+                db.clients = db.clients.filter(c => c.id !== clientId);
+                saveDB();
+                refreshClients();
+                updateClientSelects();
+                showToast('تم حذف العميل');
+            }
+        }
+
+        function editClient(clientId) {
+            const client = db.clients.find(c => c.id === clientId);
+            if (client) {
+                document.getElementById('clientName').value = client.name;
+                document.getElementById('clientTaxId').value = client.taxId || '';
+                document.getElementById('clientAddress').value = client.address || '';
+                document.getElementById('clientPhone').value = client.phone || '';
+                document.getElementById('clientEmail').value = client.email || '';
+                document.getElementById('clientBusinessType').value = client.businessType || '';
+                
+                // Change form to edit mode
+                document.getElementById('clientForm').onsubmit = function(e) {
+                    e.preventDefault();
+                    client.name = document.getElementById('clientName').value.trim();
+                    client.taxId = document.getElementById('clientTaxId').value.trim();
+                    client.address = document.getElementById('clientAddress').value.trim();
+                    client.phone = document.getElementById('clientPhone').value.trim();
+                    client.email = document.getElementById('clientEmail').value.trim();
+                    client.businessType = document.getElementById('clientBusinessType').value.trim();
+                    
+                    saveDB();
+                    closeModal('clientModal');
+                    document.getElementById('clientForm').reset();
+                    document.getElementById('clientForm').onsubmit = saveClient;
+                    refreshClients();
+                    updateClientSelects();
+                    showToast('تم تحديث العميل بنجاح');
+                };
+                
+                openModal('clientModal');
+            }
+        }
+
+        function updateClientSelects() {
+            const selects = ['clientSelect', 'filterClient'];
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (selectId === 'clientSelect') {
+                    select.innerHTML = '<option value="">-- اختر العميل --</option>' + 
+                        db.clients.map(c => `<option value="${c.id}">${c.name} (${c.taxId || 'بدون رقم ضريبي'})</option>`).join('');
+                } else {
+                    const currentValue = select.value;
+                    select.innerHTML = '<option value="">كل العملاء</option>' + 
+                        db.clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                    select.value = currentValue;
+                }
+            });
+        }
+
+        // ==================== INVOICE MANAGEMENT ====================
+        let invoiceItemCount = 0;
+
+        function initCreateInvoice() {
+            // Generate new invoice ID
+            document.getElementById('invoiceId').value = generateId('INV');
+            // Set today's date
+            document.getElementById('invoiceDate').value = new Date().toISOString().split('T')[0];
+            // Add first item row
+            if (invoiceItemCount === 0) {
+                addInvoiceItem();
+            }
+            // Update client select
+            updateClientSelects();
+        }
+
+        function addInvoiceItem() {
+            invoiceItemCount++;
+            const tbody = document.getElementById('invoiceItemsBody');
+            const row = document.createElement('tr');
+            row.id = `item-${invoiceItemCount}`;
+            row.innerHTML = `
+                <td>${invoiceItemCount}</td>
+                <td><input type="text" placeholder="وصف البند..." class="item-desc" oninput="calculateTotals()"></td>
+                <td><input type="number" placeholder="0" class="item-qty" min="1" value="1" oninput="calculateTotals()"></td>
+                <td><input type="number" placeholder="0.00" class="item-price" step="0.01" min="0" oninput="calculateTotals()"></td>
+                <td class="item-total">0.00 ج.م</td>
+                <td>
+                    <button type="button" class="action-btn action-btn-danger" onclick="removeInvoiceItem(${invoiceItemCount})" style="background: var(--danger-color);" ${invoiceItemCount === 1 ? 'disabled' : ''}>
+                        <i class="fas fa-times"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        function removeInvoiceItem(id) {
+            const row = document.getElementById(`item-${id}`);
+            if (row && invoiceItemCount > 1) {
+                row.remove();
+                calculateTotals();
+            }
+        }
+
+        function calculateTotals() {
+            let subtotal = 0;
+            
+            // Calculate items total
+            document.querySelectorAll('#invoiceItemsBody tr').forEach(row => {
+                const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+                const price = parseFloat(row.querySelector('.item-price').value) || 0;
+                const total = qty * price;
+                row.querySelector('.item-total').textContent = `${total.toFixed(2)} ج.م`;
+                subtotal += total;
+            });
+
+            // Get deduction rates
+            const vatRate = parseFloat(document.getElementById('vatRate').value) || 0;
+            const taxDeductionRate = parseFloat(document.getElementById('taxDeduction').value) || 0;
+            const laborDeductionRate = parseFloat(document.getElementById('laborDeduction').value) || 0;
+
+            // Calculate VAT
+            const vatAmount = subtotal * (vatRate / 100);
+            const totalAfterVat = subtotal + vatAmount;
+
+            // Calculate deductions
+            const taxDeductionAmount = totalAfterVat * (taxDeductionRate / 100);
+            const laborDeductionAmount = totalAfterVat * (laborDeductionRate / 100);
+
+            // Final total
+            const finalTotal = totalAfterVat - taxDeductionAmount - laborDeductionAmount;
+
+            // Update display
+            document.getElementById('subtotal').textContent = `${subtotal.toFixed(2)} ج.م`;
+            document.getElementById('vatAmount').textContent = `${vatAmount.toFixed(2)} ج.م`;
+            document.getElementById('totalAfterVat').textContent = `${totalAfterVat.toFixed(2)} ج.م`;
+            document.getElementById('taxDeductionAmount').textContent = `-${taxDeductionAmount.toFixed(2)} ج.م`;
+            document.getElementById('laborDeductionAmount').textContent = `-${laborDeductionAmount.toFixed(2)} ج.م`;
+            document.getElementById('finalTotal').textContent = `${finalTotal.toFixed(2)} ج.م`;
+
+            return finalTotal;
+        }
+
+        async function handleInvoiceUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Show processing indicator
+            document.getElementById('ocrProcessing').classList.add('active');
+            
+            try {
+                // Simulate OCR processing with Tesseract
+                const result = await Tesseract.recognize(file, 'ara+eng', {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            const progress = Math.round(m.progress * 100);
+                            document.getElementById('ocrProgress').style.width = `${progress}%`;
+                            document.getElementById('ocrProgressText').textContent = `${progress}%`;
+                        }
+                    }
+                });
+
+                // Parse OCR results and try to extract invoice data
+                const text = result.data.text;
+                console.log('OCR Result:', text);
+                
+                // Simple parsing logic (can be enhanced with AI/ML)
+                parseOCRResult(text);
+                
+                showToast('تم قراءة الفاتورة بنجاح! راجع البيانات المستخرجة');
+
+            } catch (error) {
+                console.error('OCR Error:', error);
+                showToast('حدث خطأ في قراءة الفاتورة، يرجى إدخال البيانات يدوياً', 'warning');
+            } finally {
+                setTimeout(() => {
+                    document.getElementById('ocrProcessing').classList.remove('active');
+                    document.getElementById('ocrProgress').style.width = '0%';
+                }, 1000);
+            }
+        }
+
+        function parseOCRResult(text) {
+            // This is a basic parser - can be enhanced with regex patterns for Egyptian tax invoices
+            const lines = text.split('\n');
+            
+            // Try to find amounts and fill them
+            const amountPattern = /(\d+[,\d]*\.?\d*)\s*ج\.?م|EGP|\$/g;
+            let matches = [...text.matchAll(amountPattern)];
+            
+            if (matches.length > 0) {
+                // Try to set the last large amount as total
+                const amounts = matches.map(m => parseFloat(m[1].replace(/,/g, ''))).filter(n => n > 10);
+                if (amounts.length > 0) {
+                    const maxAmount = Math.max(...amounts);
+                    // You could set this to a field automatically
+                    console.log('Detected amount:', maxAmount);
+                }
+            }
+
+            showToast('تم استخراج البيانات الأساسية من الفاتورة');
+        }
+
+        // Drag and drop support
+        const uploadArea = document.getElementById('invoiceUploadArea');
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                document.getElementById('invoiceImageInput').files = e.dataTransfer.files;
+                handleInvoiceUpload({ target: { files: [file] } });
+            }
+        });
+
+        function saveInvoice() {
+            const clientId = document.getElementById('clientSelect').value;
+            const invoiceDate = document.getElementById('invoiceDate').value;
+            
+            if (!clientId) {
+                showToast('يرجى اختيار العميل', 'error');
+                return;
+            }
+            if (!invoiceDate) {
+                showToast('يرجى إدخال تاريخ الفاتورة', 'error');
+                return;
+            }
+
+            // Collect items
+            const items = [];
+            document.querySelectorAll('#invoiceItemsBody tr').forEach((row, index) => {
+                const desc = row.querySelector('.item-desc').value;
+                const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+                const price = parseFloat(row.querySelector('.item-price').value) || 0;
+                if (desc || qty > 0) {
+                    items.push({ description: desc, quantity: qty, unitPrice: price, total: qty * price });
+                }
+            });
+
+            if (items.length === 0) {
+                showToast('يرجى إضافة بند واحد على الأقل', 'error');
+                return;
+            }
+
+            const finalTotal = calculateTotals();
+            
+            const invoice = {
+                id: document.getElementById('invoiceId').value,
+                clientId: clientId,
+                clientName: db.clients.find(c => c.id === clientId)?.name || 'Unknown',
+                date: invoiceDate,
+                items: items,
+                subtotal: parseFloat(document.getElementById('subtotal').textContent) || 0,
+                vatRate: parseFloat(document.getElementById('vatRate').value) || 14,
+                vatAmount: parseFloat(document.getElementById('vatAmount').textContent) || 0,
+                totalAfterVat: parseFloat(document.getElementById('totalAfterVat').textContent) || 0,
+                taxDeductionRate: parseFloat(document.getElementById('taxDeduction').value) || 0,
+                taxDeductionAmount: parseFloat(document.getElementById('taxDeductionAmount').textContent.replace('-', '')) || 0,
+                laborDeductionRate: parseFloat(document.getElementById('laborDeduction').value) || 0,
+                laborDeductionAmount: parseFloat(document.getElementById('laborDeductionAmount').textContent.replace('-', '')) || 0,
+                finalTotal: finalTotal,
+                collectedAmount: 0,
+                remainingAmount: finalTotal,
+                status: 'active',
+                createdAt: new Date().toISOString(),
+                documents: [],
+                payments: []
+            };
+
+            db.invoices.push(invoice);
+            saveDB();
+            
+            showToast('تم حفظ الفاتورة بنجاح ✓');
+            resetInvoiceForm();
+            showSection('invoices-list');
+        }
+
+        function resetInvoiceForm() {
+            document.getElementById('clientSelect').value = '';
+            document.getElementById('vatRate').value = '14';
+            document.getElementById('taxDeduction').value = '0';
+            document.getElementById('laborDeduction').value = '0';
+            document.getElementById('invoiceItemsBody').innerHTML = '';
+            invoiceItemCount = 0;
+            addInvoiceItem();
+            calculateTotals();
+            initCreateInvoice();
+        }
+
+        // ==================== INVOICES LIST ====================
+        function refreshInvoices() {
+            const tbody = document.getElementById('invoicesTableBody');
+            const searchTerm = document.getElementById('invoiceSearch').value.toLowerCase();
+            const filterClient = document.getElementById('filterClient').value;
+            const filterStatus = document.getElementById('filterStatus').value;
+            const filterDateFrom = document.getElementById('filterDateFrom').value;
+            const filterDateTo = document.getElementById('filterDateTo').value;
+
+            let filteredInvoices = db.invoices.filter(inv => {
+                const matchSearch = inv.id.toLowerCase().includes(searchTerm) || 
+                                   inv.clientName.toLowerCase().includes(searchTerm);
+                const matchClient = !filterClient || inv.clientId === filterClient;
+                const matchStatus = !filterStatus || inv.status === filterStatus;
+                const matchDateFrom = !filterDateFrom || inv.date >= filterDateFrom;
+                const matchDateTo = !filterDateTo || inv.date <= filterDateTo;
+                
+                return matchSearch && matchClient && matchStatus && matchDateFrom && matchDateTo;
+            });
+
+            // Sort by date (newest first)
+            filteredInvoices.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (filteredInvoices.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <h3>لا توجد فواتير</h3>
+                            <p>ابدأ بإنشاء فاتورتك الأولى!</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filteredInvoices.map(inv => {
+                const collectionRate = inv.finalTotal > 0 ? ((inv.collectedAmount / inv.finalTotal) * 100) : 0;
+                const statusClass = inv.status === 'active' ? 'badge-active' : inv.status === 'closed' ? 'badge-closed' : 'badge-overdue';
+                const statusText = inv.status === 'active' ? 'نشطة' : inv.status === 'closed' ? 'مغلقة' : 'متأخرة';
+                
+                return `
+                    <tr>
+                        <td><strong>${inv.id}</strong></td>
+                        <td>${inv.clientName}</td>
+                        <td>${inv.date}</td>
+                        <td>${inv.finalTotal.toFixed(2)} ج.م</td>
+                        <td style="color: var(--secondary-color); font-weight: bold;">${inv.collectedAmount.toFixed(2)} ج.م</td>
+                        <td style="color: var(--danger-color); font-weight: bold;">${inv.remainingAmount.toFixed(2)} ج.م</td>
+                        <td>
+                            <div class="progress-bar-container" style="width: 100px; height: 20px;">
+                                <div class="progress-bar" style="width: ${Math.min(collectionRate, 100)}%;">
+                                    <span class="progress-text" style="font-size: 0.7rem;">${collectionRate.toFixed(0)}%</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge ${statusClass}">${statusText}</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="action-btn action-btn-view" onclick="viewInvoiceDetails('${inv.id}')" title="عرض">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="action-btn action-btn-payment" onclick="openPaymentModal('${inv.id}')" title="تحصيل">
+                                    <i class="fas fa-money-bill"></i>
+                                </button>
+                                <button class="action-btn action-btn-doc" onclick="openDocumentModal('${inv.id}')" title="مستند">
+                                    <i class="fas fa-paperclip"></i>
+                                </button>
+                                <button class="action-btn action-btn-close" onclick="closeInvoice('${inv.id}')" title="إغلاق" ${inv.status !== 'active' ? 'disabled' : ''}>
+                                    <i class="fas fa-lock"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterInvoices() {
+            refreshInvoices();
+        }
+
+        function viewInvoiceDetails(invoiceId) {
+            const invoice = db.invoices.find(inv => inv.id === invoiceId);
+            if (!invoice) return;
+
+            const client = db.clients.find(c => c.id === invoice.clientId);
+            const payments = db.payments.filter(p => p.invoiceId === invoiceId);
+            const documents = db.documents.filter(d => d.invoiceId === invoiceId);
+            const collectionRate = invoice.finalTotal > 0 ? ((invoice.collectedAmount / invoice.finalTotal) * 100) : 0;
+
+            const content = `
+                <h2 style="margin-bottom: 1.5rem; color: var(--primary-light); font-size: 1.8rem;">
+                    <i class="fas fa-file-invoice"></i> تفاصيل الفاتورة: ${invoice.id}
+                </h2>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                    <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 15px;">
+                        <h4 style="color: var(--text-secondary); margin-bottom: 0.5rem;">العميل</h4>
+                        <p style="font-size: 1.2rem; font-weight: bold;">${invoice.clientName}</p>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">الرقم الضريبي: ${client?.taxId || '-'}</p>
+                    </div>
+                    <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 15px;">
+                        <h4 style="color: var(--text-secondary); margin-bottom: 0.5rem;">التاريخ</h4>
+                        <p style="font-size: 1.2rem; font-weight: bold;">${invoice.date}</p>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">الحالة: <span class="badge badge-${invoice.status}">${invoice.status === 'active' ? 'نشطة' : invoice.status === 'closed' ? 'مغلقة' : 'متأخرة'}</span></p>
+                    </div>
+                </div>
+
+                <!-- Financial Summary -->
+                <div class="summary-box">
+                    <h3 style="margin-bottom: 1rem;"><i class="fas fa-calculator"></i> الملخص المالي</h3>
+                    <div class="summary-row">
+                        <span>إجمالي الفاتورة:</span>
+                        <span>${invoice.finalTotal.toFixed(2)} ج.م</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>خصم ضريبي (${invoice.taxDeductionRate}%):</span>
+                        <span style="color: var(--danger-color);">-${invoice.taxDeductionAmount.toFixed(2)} ج.م</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>خصم العمالة (${invoice.laborDeductionRate}%):</span>
+                        <span style="color: var(--danger-color);">-${invoice.laborDeductionAmount.toFixed(2)} ج.م</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>المبلغ المحصل:</span>
+                        <span style="color: var(--secondary-color);">${invoice.collectedAmount.toFixed(2)} ج.م</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>المتبقي:</span>
+                        <span style="color: ${invoice.remainingAmount > 0 ? 'var(--danger-color)' : 'var(--secondary-color)'}; font-weight: bold;">${invoice.remainingAmount.toFixed(2)} ج.م</span>
+                    </div>
+                    <div style="margin-top: 1rem;">
+                        <span>نسبة التحصيل: </span>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar" style="width: ${Math.min(collectionRate, 100)}%;">
+                                <span class="progress-text">${collectionRate.toFixed(1)}%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Items -->
+                <div class="card" style="margin-top: 2rem;">
+                    <h3 class="card-title"><i class="fas fa-list"></i> بنود الفاتورة</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>الوصف</th>
+                                    <th>الكمية</th>
+                                    <th>سعر الوحدة</th>
+                                    <th>الإجمالي</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${invoice.items.map((item, idx) => `
+                                    <tr>
+                                        <td>${idx + 1}</td>
+                                        <td>${item.description}</td>
+                                        <td>${item.quantity}</td>
+                                        <td>${item.unitPrice.toFixed(2)} ج.م</td>
+                                        <td>${item.total.toFixed(2)} ج.م</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Documents -->
+                <div class="card" style="margin-top: 2rem;">
+                    <h3 class="card-title"><i class="fas fa-folder-open"></i> المستندات المرفقة (${documents.length})</h3>
+                    ${documents.length > 0 ? `
+                        <div class="document-grid">
+                            ${documents.map(doc => `
+                                <div class="document-item">
+                                    <i class="fas fa-${doc.type.includes('collection') ? 'check-circle' : doc.type.includes('tax') ? 'file-invoice-dollar' : doc.type.includes('labor') ? 'certificate' : 'file'}"></i>
+                                    <p style="font-weight: 600; margin: 0.5rem 0;">${getDocumentTypeName(doc.type)}</p>
+                                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0;">${new Date(doc.uploadedAt).toLocaleDateString('ar-EG')}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : '<p style="color: var(--text-secondary); text-align: center; padding: 2rem;">لا توجد مستندات مرفقة</p>'}
+                </div>
+
+                <!-- Payment History -->
+                <div class="card" style="margin-top: 2rem;">
+                    <h3 class="card-title"><i class="fas fa-history"></i> سجل التحصيلات (${payments.length})</h3>
+                    ${payments.length > 0 ? `
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>التاريخ</th>
+                                        <th>المبلغ</th>
+                                        <th>المتبقي بعد التحصيل</th>
+                                        <th>ملاحظات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${payments.map(p => `
+                                        <tr>
+                                            <td>${p.date}</td>
+                                            <td style="color: var(--secondary-color); font-weight: bold;">+${p.amount.toFixed(2)} ج.م</td>
+                                            <td>${p.remainingAfter.toFixed(2)} ج.م</td>
+                                            <td>${p.notes || '-'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    ` : '<p style="color: var(--text-secondary); text-align: center; padding: 2rem;">لا توجد تحصيلات مسجلة</p>'}
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem; flex-wrap: wrap;">
+                    <button class="btn btn-success" onclick="openPaymentModal('${invoiceId}'); closeModal('invoiceDetailsModal');" ${invoice.status !== 'active' ? 'disabled' : ''}>
+                        <i class="fas fa-money-bill"></i> تسجيل تحصيل
+                    </button>
+                    <button class="btn btn-primary" onclick="openDocumentModal('${invoiceId}'); closeModal('invoiceDetailsModal');" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                        <i class="fas fa-paperclip"></i> رفع مستند
+                    </button>
+                    <button class="btn btn-warning" onclick="printInvoice('${invoiceId}')">
+                        <i class="fas fa-print"></i> طباعة
+                    </button>
+                </div>
+            `;
+
+            document.getElementById('invoiceDetailsContent').innerHTML = content;
+            openModal('invoiceDetailsModal');
+        }
+
+        function getDocumentTypeName(type) {
+            const types = {
+                'collection_notice': 'إشعار تحصيل',
+                'tax_deduction': 'إشعار خصم ضرائب',
+                'labor_certificate': 'شهادة عمالة',
+                'other': 'مستند آخر'
+            };
+            return types[type] || type;
+        }
+
+        // ==================== PAYMENT SYSTEM ====================
+        function openPaymentModal(invoiceId) {
+            const invoice = db.invoices.find(inv => inv.id === invoiceId);
+            if (!invoice) return;
+
+            if (invoice.status !== 'active') {
+                showToast('لا يمكن إضافة تحصيل لهذه الفاتورة', 'warning');
+                return;
+            }
+
+            document.getElementById('paymentInvoiceId').value = invoiceId;
+            document.getElementById('paymentDueAmount').value = `${invoice.remainingAmount.toFixed(2)} ج.م`;
+            document.getElementById('paymentAmount').value = '';
+            document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('paymentNotes').value = '';
+            document.getElementById('paymentComparison').style.display = 'none';
+
+            openModal('paymentModal');
+
+            // Add real-time calculation listener
+            document.getElementById('paymentAmount').oninput = function() {
+                const amount = parseFloat(this.value) || 0;
+                if (amount > 0) {
+                    document.getElementById('paymentComparison').style.display = 'block';
+                    document.getElementById('beforePayment').textContent = `${invoice.remainingAmount.toFixed(2)} ج.م`;
+                    document.getElementById('paymentAmountDisplay').textContent = `+${amount.toFixed(2)} ج.م`;
+                    
+                    const afterPayment = Math.max(0, invoice.remainingAmount - amount);
+                    document.getElementById('afterPayment').textContent = `${afterPayment.toFixed(2)} ج.م`;
+                    
+                    const rate = ((invoice.collectedAmount + amount) / invoice.finalTotal) * 100;
+                    document.getElementById('paymentProgress').style.width = `${Math.min(rate, 100)}%`;
+                    document.getElementById('paymentProgressText').textContent = `${rate.toFixed(1)}%`;
+                } else {
+                    document.getElementById('paymentComparison').style.display = 'none';
+                }
+            };
+        }
+
+        function savePayment(e) {
+            e.preventDefault();
+            
+            const invoiceId = document.getElementById('paymentInvoiceId').value;
+            const amount = parseFloat(document.getElementById('paymentAmount').value);
+            const date = document.getElementById('paymentDate').value;
+            const notes = document.getElementById('paymentNotes').value;
+
+            if (!amount || amount <= 0) {
+                showToast('يرجى إدخال مبلغ صحيح', 'error');
+                return;
+            }
+
+            const invoice = db.invoices.find(inv => inv.id === invoiceId);
+            if (!invoice) return;
+
+            if (amount > invoice.remainingAmount) {
+                showToast(`المبلغ يتجاوز المتبقي (${invoice.remainingAmount.toFixed(2)} ج.م)`, 'error');
+                return;
+            }
+
+            const payment = {
+                id: generateId('PAY'),
+                invoiceId: invoiceId,
+                amount: amount,
+                date: date,
+                remainingBefore: invoice.remainingAmount,
+                remainingAfter: invoice.remainingAmount - amount,
+                notes: notes,
+                createdAt: new Date().toISOString()
+            };
+
+            // Update invoice
+            invoice.collectedAmount += amount;
+            invoice.remainingAmount -= amount;
+            invoice.payments.push(payment.id);
+
+            // Check if fully collected
+            if (invoice.remainingAmount <= 0.01) {
+                invoice.status = 'closed';
+                invoice.remainingAmount = 0;
+            }
+
+            db.payments.push(payment);
+            saveDB();
+
+            closeModal('paymentModal');
+            refreshInvoices();
+            refreshDashboard();
+            showToast(`تم تسجيل تحصيل قدره ${amount.toFixed(2)} ج.م بنجاح ✓`);
+        }
+
+        // ==================== DOCUMENT UPLOAD ====================
+        function openDocumentModal(invoiceId) {
+            document.getElementById('docInvoiceId').value = invoiceId;
+            document.getElementById('docType').value = '';
+            document.getElementById('docDescription').value = '';
+            document.getElementById('docFileInput').value = '';
+            
+            openModal('documentModal');
+        }
+
+        function saveDocument(e) {
+            e.preventDefault();
+            
+            const invoiceId = document.getElementById('docInvoiceId').value;
+            const type = document.getElementById('docType').value;
+            const description = document.getElementById('docDescription').value;
+            const fileInput = document.getElementById('docFileInput');
+
+            if (!type) {
+                showToast('يرجى اختيار نوع المستند', 'error');
+                return;
+            }
+
+            if (!fileInput.files[0]) {
+                showToast('يرجى اختيار ملف', 'error');
+                return;
+            }
+
+            // Convert file to base64 for storage (in real app, would upload to server/Supabase storage)
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const document = {
+                    id: generateId('DOC'),
+                    invoiceId: invoiceId,
+                    type: type,
+                    fileName: fileInput.files[0].name,
+                    fileData: event.target.result,
+                    description: description,
+                    uploadedAt: new Date().toISOString()
+                };
+
+                db.documents.push(document);
+                saveDB();
+
+                closeModal('documentModal');
+                showToast(`تم رفع ${getDocumentTypeName(type)} بنجاح ✓`);
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+        }
+
+        // ==================== INVOICE ACTIONS ====================
+        function closeInvoice(invoiceId) {
+            const invoice = db.invoices.find(inv => inv.id === invoiceId);
+            if (!invoice) return;
+
+            if (invoice.remainingAmount > 0.01) {
+                if (!confirm(`هذه الفاتورة لم يتم تحصيلها بالكامل (${invoice.remainingAmount.toFixed(2)} ج.م متبقي). هل تريد إغلاقها anyway؟`)) {
+                    return;
+                }
+            }
+
+            invoice.status = 'closed';
+            saveDB();
+            refreshInvoices();
+            showToast('تم إغلاق الفاتورة');
+        }
+
+        function printInvoice(invoiceId) {
+            const invoice = db.invoices.find(inv => inv.id === invoiceId);
+            if (!invoice) return;
+
+            // Create printable version
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html dir="rtl">
+                <head>
+                    <title>فاتورة ${invoice.id}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 40px; direction: rtl; }
+                        .header { text-align: center; margin-bottom: 30px; border-bottom: 3px solid #2563eb; padding-bottom: 20px; }
+                        .info { display: flex; justify-content: space-between; margin: 20px 0; }
+                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        th, td { border: 1px solid #ddd; padding: 12px; text-align: right; }
+                        th { background: #2563eb; color: white; }
+                        .total { font-size: 1.5em; font-weight: bold; color: #2563eb; text-align: left; margin-top: 20px; }
+                        .footer { margin-top: 40px; text-align: center; color: #666; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>Axentro Invoice System</h1>
+                        <h2>فاتورة رقم: ${invoice.id}</h2>
+                    </div>
+                    <div class="info">
+                        <div>
+                            <strong>العميل:</strong> ${invoice.clientName}<br>
+                            <strong>التاريخ:</strong> ${invoice.date}
+                        </div>
+                        <div>
+                            <strong>الحالة:</strong> ${invoice.status}<br>
+                            <strong>الإجمالي:</strong> ${invoice.finalTotal.toFixed(2)} ج.م
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr><th>#</th><th>الوصف</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>
+                        </thead>
+                        <tbody>
+                            ${invoice.items.map((item, idx) => `
+                                <tr>
+                                    <td>${idx + 1}</td>
+                                    <td>${item.description}</td>
+                                    <td>${item.quantity}</td>
+                                    <td>${item.unitPrice.toFixed(2)}</td>
+                                    <td>${item.total.toFixed(2)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <div class="total">الإجمالي النهائي: ${invoice.finalTotal.toFixed(2)} ج.م</div>
+                    <div class="footer">
+                        <p>© 2024 Axentro – All Rights Reserved | By Axentro Team</p>
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        // ==================== EXPORT FUNCTIONS ====================
+        function exportToExcel() {
+            // Create CSV content
+            let csv = 'رقم الفاتورة,العميل,التاريخ,الإجمالي,المحصل,المتبقي,الحالة\n';
+            
+            db.invoices.forEach(inv => {
+                csv += `${inv.id},${inv.clientName},${inv.date},${inv.finalTotal},${inv.collectedAmount},${inv.remainingAmount},${inv.status}\n`;
+            });
+
+            // Download
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Axentro_Invoices_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            
+            showToast('تم تصدير البيانات إلى Excel');
+        }
+
+        function exportToPDF() {
+            // For PDF export, in production you'd use jsPDF or similar library
+            // Here we'll trigger print which can save as PDF
+            alert('لتحويل إلى PDF: اضغط Ctrl+P ثم اختر "Save as PDF" كطابعة');
+            window.print();
+        }
+
+        // ==================== DASHBOARD ====================
+        function refreshDashboard() {
+            const totalInvoices = db.invoices.length;
+            const activeInvoices = db.invoices.filter(inv => inv.status === 'active').length;
+            const collectedAmount = db.invoices.reduce((sum, inv) => sum + inv.collectedAmount, 0);
+            const remainingAmount = db.invoices.reduce((sum, inv) => sum + inv.remainingAmount, 0);
+            const totalClients = db.clients.length;
+
+            // Animate numbers
+            animateValue('totalInvoices', totalInvoices);
+            animateValue('activeInvoices', activeInvoices);
+            document.getElementById('collectedAmount').textContent = collectedAmount.toLocaleString('ar-EG', { maximumFractionDigits: 2 });
+            document.getElementById('remainingAmount').textContent = remainingAmount.toLocaleString('ar-EG', { maximumFractionDigits: 2 });
+            animateValue('totalClients', totalClients);
+
+            // Recent invoices table
+            const recentTable = document.getElementById('recentInvoicesTable');
+            const recentInvoices = [...db.invoices].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
+
+            if (recentInvoices.length === 0) {
+                recentTable.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <h3>لا توجد فواتير بعد</h3>
+                            <p>ابدأ بإنشاء فاتورتك الأولى!</p>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                recentTable.innerHTML = recentInvoices.map(inv => {
+                    const statusClass = inv.status === 'active' ? 'badge-active' : inv.status === 'closed' ? 'badge-closed' : 'badge-overdue';
+                    const statusText = inv.status === 'active' ? 'نشطة' : inv.status === 'closed' ? 'مغلقة' : 'متأخرة';
+                    return `
+                        <tr onclick="viewInvoiceDetails('${inv.id}')" style="cursor: pointer;">
+                            <td><strong>${inv.id}</strong></td>
+                            <td>${inv.clientName}</td>
+                            <td>${inv.date}</td>
+                            <td>${inv.finalTotal.toFixed(2)} ج.م</td>
+                            <td style="color: var(--secondary-color);">${inv.collectedAmount.toFixed(2)} ج.م</td>
+                            <td style="color: var(--danger-color);">${inv.remainingAmount.toFixed(2)} ج.م</td>
+                            <td><span class="badge ${statusClass}">${statusText}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        function animateValue(elementId, endValue) {
+            const element = document.getElementById(elementId);
+            const duration = 1000;
+            const startValue = parseInt(element.textContent) || 0;
+            const startTime = performance.now();
+
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const currentValue = Math.floor(startValue + (endValue - startValue) * progress);
+                element.textContent = currentValue;
+
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+
+            requestAnimationFrame(update);
+        }
+
+        // ==================== REPORTS & ANALYTICS ====================
+        let collectionChart, statusChart, topClientsChart;
+
+        function refreshReports() {
+            // Calculate KPIs
+            const totalSales = db.invoices.reduce((sum, inv) => sum + inv.finalTotal, 0);
+            const totalCollected = db.invoices.reduce((sum, inv) => sum + inv.collectedAmount, 0);
+            const collectionRate = totalSales > 0 ? ((totalCollected / totalSales) * 100) : 0;
+            const avgInvoice = db.invoices.length > 0 ? (totalSales / db.invoices.length) : 0;
+            const overdueCount = db.invoices.filter(inv => {
+                const daysSinceCreation = Math.floor((new Date() - new Date(inv.date)) / (1000 * 60 * 60 * 24));
+                return inv.status === 'active' && daysSinceCreation > 30;
+            }).length;
+
+            document.getElementById('reportTotalSales').textContent = totalSales.toLocaleString('ar-EG', { maximumFractionDigits: 2 });
+            document.getElementById('reportCollectionRate').textContent = `${collectionRate.toFixed(1)}%`;
+            document.getElementById('reportAvgInvoice').textContent = avgInvoice.toLocaleString('ar-EG', { maximumFractionDigits: 2 });
+            document.getElementById('reportOverdueCount').textContent = overdueCount;
+
+            // Update charts
+            updateCharts();
+        }
+
+        function updateCharts() {
+            // Destroy existing charts
+            if (collectionChart) collectionChart.destroy();
+            if (statusChart) statusChart.destroy();
+            if (topClientsChart) topClientsChart.destroy();
+
+            // Chart 1: Collection Trend (simulated monthly data)
+            const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'];
+            const monthlyData = months.map((_, idx) => {
+                const monthInvoices = db.invoices.filter(inv => {
+                    const invMonth = new Date(inv.date).getMonth();
+                    return invMonth === idx;
+                });
+                return monthInvoices.reduce((sum, inv) => sum + inv.collectedAmount, 0);
+            });
+
+            const ctx1 = document.getElementById('collectionTrendChart').getContext('2d');
+            collectionChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'المبالغ المحصلة (ج.م)',
+                        data: monthlyData,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#2563eb',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: '#94a3b8', font: { family: 'Cairo' } } }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
+                        y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } }
+                    }
+                }
+            });
+
+            // Chart 2: Status Distribution
+            const activeCount = db.invoices.filter(inv => inv.status === 'active').length;
+            const closedCount = db.invoices.filter(inv => inv.status === 'closed').length;
+            const overdueCount = db.invoices.filter(inv => inv.status === 'overdue').length;
+
+            const ctx2 = document.getElementById('statusDistributionChart').getContext('2d');
+            statusChart = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['نشطة', 'مغلقة', 'متأخرة'],
+                    datasets: [{
+                        data: [activeCount, closedCount, overdueCount],
+                        backgroundColor: ['#10b981', '#3b82f6', '#ef4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { 
+                            position: 'bottom',
+                            labels: { color: '#94a3b8', font: { family: 'Cairo', size: 14 }, padding: 20 }
+                        }
+                    }
+                }
+            });
+
+            // Chart 3: Top Clients
+            const clientTotals = {};
+            db.invoices.forEach(inv => {
+                clientTotals[inv.clientName] = (clientTotals[inv.clientName] || 0) + inv.finalTotal;
+            });
+            const sortedClients = Object.entries(clientTotals).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+            const ctx3 = document.getElementById('topClientsChart').getContext('2d');
+            topClientsChart = new Chart(ctx3, {
+                type: 'bar',
+                data: {
+                    labels: sortedClients.map(c => c[0]),
+                    datasets: [{
+                        label: 'إجمالي التعاملات (ج.م)',
+                        data: sortedClients.map(c => c[1]),
+                        backgroundColor: [
+                            'rgba(37, 99, 235, 0.8)',
+                            'rgba(16, 185, 129, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(139, 92, 246, 0.8)',
+                            'rgba(236, 72, 153, 0.8)'
+                        ],
+                        borderRadius: 10
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
+                        y: { ticks: { color: '#94a3b8', font: { family: 'Cairo' } }, grid: { display: false }
+                    }
+                }
+            });
+        }
+
+        // ==================== INITIALIZATION ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize dashboard
+            refreshDashboard();
+            updateClientSelects();
+
+            // Set default date for payment form
+            document.getElementById('paymentDate').valueAsDate = new Date();
+
+            console.log('%c🚀 Axentro Invoice System Loaded Successfully!', 'color: #2563eb; font-size: 16px; font-weight: bold;');
+            console.log('%c© 2024 Axentro – All Rights Reserved', 'color: #94a3b8;');
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case '1':
+                        e.preventDefault();
+                        showSection('dashboard');
+                        break;
+                    case '2':
+                        e.preventDefault();
+                        showSection('clients');
+                        break;
+                    case '3':
+                        e.preventDefault();
+                        showSection('create-invoice');
+                        break;
+                    case '4':
+                        e.preventDefault();
+                        showSection('invoices-list');
+                        break;
+                    case '5':
+                        e.preventDefault();
+                        showSection('reports');
+                        break;
+                }
+            }
+            
+            // Escape to close modals
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+                document.body.style.overflow = '';
+            }
+        });
+    </script>
+</body>
+</html>
